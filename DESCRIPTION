@@ -1,0 +1,13 @@
+Package: protoClassification
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Authors@R: person(
+    "andrés", "castro araújo",
+    email = "andres.castro.araujo@duke.edu",
+    role = c("aut", "cre") )
+Description: Implements simulation code used in Castro & Güémez (in progress).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    mvtnorm
+RoxygenNote: 7.3.2
