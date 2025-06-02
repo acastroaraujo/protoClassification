@@ -23,3 +23,23 @@ make_data <- function(marginals, rho, obs = 1e3) {
   out <- round(stats::pnorm(out)) ## equivalent to pnorm(out) > 0.5
   out
 }
+
+
+#' Get all size K permutations of `0` and `1`
+#'
+#' @param K number of dimensions
+#'
+#' @returns a data frame of permutations
+#' @export
+#'
+#' @examples
+#' all_permutations(3)
+all_permutations <- function(K) {
+  stopifnot(K > 1)
+  stopifnot(length(K) == 1)
+  arrangements::permutations(0:1, K, replace = TRUE)
+}
+
+
+
+

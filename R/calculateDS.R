@@ -9,7 +9,7 @@
 #' @returns a data frame with distance and similarity
 #' @export
 #'
-calculate <- function(X, w, P, g, r = 1) {
+calculateDS <- function(X, w, P, g, r = 1) {
   stopifnot(g >= 0)
   stopifnot(length(w) == length(P))
   stopifnot(r == 1L | r == 2L)
