@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 # protoClassification
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 You can install the development version of protoClassification from [GitHub](https://github.com/) with:
@@ -34,7 +35,7 @@ knitr::include_graphics("overview.png")
 ```
 
 
-```{r example, message=FALSE, warning=FALSE}
+```{r example, message=FALSE, warning=FALSE, eval=FALSE}
 library(tidyverse)
 library(protoClassification)
 
@@ -47,43 +48,44 @@ rownames(rho) <- nms
 colnames(rho) <- nms
 names(marginals) <- nms
 
-out <- make_data(marginals, rho) 
-colnames(out) <- nms
+out <- make_binary_data(marginals, rho)
 out[1:10, ]
 
-w <- rexp(K, rate = 3)
+w <- runif(K)
 w <- w / sum(w)
+
 P <- rep(1, K)
 
-d <- calculateDS(out, w, P, g = 10) |> 
-  rename_all(\(x) paste0(x, 1)) |> 
+d <- calculateDS(out, w, P, g = 10) |>
+  rename_all(\(x) paste0(x, 1)) |>
   bind_cols(as.data.frame(out))
 
-d |> 
-  ggplot(aes(distance1, similarity1)) + 
-  geom_point(alpha = 1/4, position = position_jitter(width = 0))
+d |>
+  ggplot(aes(distance1, similarity1)) +
+  geom_point(alpha = 1 / 4, position = position_jitter(width = 0))
 
 P2 <- rep(0, K)
-d2 <- calculateDS(out, w, P2, 12) |> 
+d2 <- calculateDS(out, w, P2, 12) |>
   rename_all(\(x) paste0(x, 2))
 
 d <- bind_cols(d, d2)
 
-d <- d |> 
-  mutate(C1 = similarity1 / (similarity1 + similarity2)) |> 
+d <- d |>
+  mutate(C1 = similarity1 / (similarity1 + similarity2)) |>
   mutate(C2 = similarity2 / (similarity1 + similarity2))
 
-d |> 
-  ggplot(aes(similarity1, C1)) + 
+d |>
+  ggplot(aes(similarity1, C1)) +
+  geom_point()
+scale_x_log10()
+
+d |>
+  ggplot(aes(distance1, C1)) +
   geom_point()
 
-d |> 
-  ggplot(aes(distance1, C1)) + 
-  geom_point()
-
-d |> 
-  ggplot(aes(similarity2, C2)) + 
-  geom_point() + 
+d |>
+  ggplot(aes(similarity2, C2)) +
+  geom_point() +
   scale_x_log10()
 
 mean(round(d$C1))

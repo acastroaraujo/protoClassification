@@ -17,3 +17,5 @@ calculateDS <- function(X, w, P, g, r = 1) {
   similarity <- exp(-g * distance)
   data.frame(distance, similarity)
 }
+
+## YOU ARE HERE. YOU ARE CHANGING THIS FUNCTION SO THAT IT CAN HANDLE A LIST OF PROTOTYPES

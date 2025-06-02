@@ -1,4 +1,3 @@
-
 #' LKJ distribution
 #'
 #' @source These functions come from Richard McElreath's `rethinking` package
@@ -39,16 +38,51 @@ rlkjcorr <- function(n, K, eta = 1) {
 
   R <- replicate(n, f(), simplify = FALSE)
 
-  if (n == 1) {
-    R[[1]]
-  } else {
-    R
-  }
+  if (n == 1) R <- R[[1]]
+  return(R)
 }
-
 
 dlkjcorr <- function(x, eta = 1, log = TRUE) {
   ll <- det(x)^(eta - 1)
   if (log == TRUE) ll <- log(ll)
   return(ll)
+}
+
+
+#' Transform correlation
+#'
+#' @param rho correlation matrix
+#' @param el a K-by-3 matrix in which the first two columns are row
+#'    and column indicators; and the third column is the new value.
+#'
+#' @returns a transformed correlation matrix, further adjusted so that
+#'    it is "positive definite"
+#' @export
+#'
+#' @examples
+#'
+#' rho <- rlkjcorr(n = 1, K = 4, eta = 1)
+#'
+#' el <- rbind(
+#'   c(i = 1, j = 2, r = +0.7), ## set corr between x1 and x2 as 0.7
+#'   c(i = 3, j = 4, r = -0.5)  ## set corr between x3 and x4 as -0.5
+#' )
+#'
+#' out <- transform_rho(rho, el)
+#'
+#' round(rho, 2)
+#' round(out, 2)
+#'
+transform_rho <- function(rho, el) {
+  stopifnot(ncol(el) == 3)
+  stopifnot(all(el[, 3] >= -1 & el[, 3] <= 1))
+
+  rho[el[, 1:2]] <- el[, 3]
+  rho[el[, 2:1]] <- el[, 3]
+
+  out <- Matrix::nearPD(rho, corr = TRUE, base.matrix = TRUE)
+  message("iterations: ", out$iterations)
+  message("converged: ", out$converged)
+
+  return(out$mat)
 }
