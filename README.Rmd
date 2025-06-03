@@ -28,68 +28,96 @@ You can install the development version of protoClassification from [GitHub](htt
 pak::pak("acastroaraujo/protoClassification")
 ```
 
-Overview:
-
 ```{r overview, echo=FALSE}
 knitr::include_graphics("overview.png")
 ```
 
+### Get Started
 
-```{r example, message=FALSE, warning=FALSE, eval=FALSE}
-library(tidyverse)
+To simulate a dataset like the one in the Figure you need to create to decide a couple of things first.
+
+1. The number of $K$ dimensions.
+2. The marginal probabilities for each dimension.
+3. A correlation matrix for the dimensions.
+
+```{r}
 library(protoClassification)
+set.seed(1)
+K <- 6 # 1st step
+marginals <- rbeta(K, 2, 2) # 2nd step
+rho <- rlkjcorr(1, K, eta = 1) # 3rd step
 
-K <- 5
 nms <- paste0("k", 1:K)
-rho <- rlkjcorr(1, K, eta = 1)
-marginals <- rbeta(K, 2, 3)
-
-rownames(rho) <- nms
-colnames(rho) <- nms
 names(marginals) <- nms
+dimnames(rho) <- list(nms, nms)
 
-out <- make_binary_data(marginals, rho)
-out[1:10, ]
-
-w <- runif(K)
-w <- w / sum(w)
-
-P <- rep(1, K)
-
-d <- calculateDS(out, w, P, g = 10) |>
-  rename_all(\(x) paste0(x, 1)) |>
-  bind_cols(as.data.frame(out))
-
-d |>
-  ggplot(aes(distance1, similarity1)) +
-  geom_point(alpha = 1 / 4, position = position_jitter(width = 0))
-
-P2 <- rep(0, K)
-d2 <- calculateDS(out, w, P2, 12) |>
-  rename_all(\(x) paste0(x, 2))
-
-d <- bind_cols(d, d2)
-
-d <- d |>
-  mutate(C1 = similarity1 / (similarity1 + similarity2)) |>
-  mutate(C2 = similarity2 / (similarity1 + similarity2))
-
-d |>
-  ggplot(aes(similarity1, C1)) +
-  geom_point()
-scale_x_log10()
-
-d |>
-  ggplot(aes(distance1, C1)) +
-  geom_point()
-
-d |>
-  ggplot(aes(similarity2, C2)) +
-  geom_point() +
-  scale_x_log10()
-
-mean(round(d$C1))
-mean(round(d$C2))
+round(rho, 2)
+round(marginals, 2)
 ```
 
+**Generate data.**
+
+```{r}
+set.seed(1)
+X <- make_binary_data(marginals, rho, obs = 1e3)
+head(X, n = 10)
+```
+
+Verify that the column means _roughly_ correspond to the marginal probabilities.
+
+```{r}
+colMeans(X) |> round(2)
+```
+
+In order to verify that the data follows the correlation structure in `rho` you would have to calculate a "[tetrachoric correlation](https://en.wikipedia.org/wiki/Polychoric_correlation)."
+
+```{r, warning=FALSE}
+psych::tetrachoric(X)$rho |> round(2)
+```
+
+Additional stuff for Prototype Classification Model:
+
+- `g` (gamma) sensitivity parameter
+- `w` a vector of attention weights for each k
+- `P` a list of prototypes
+
+```{r}
+set.seed(1)
+w <- runif(K)
+w <- w / sum(w)
+g <- 10
+```
+
+Calculate distance and similarity for one prototype at a time:
+
+```{r}
+d <- calculateDistSim(
+  P = rep(1, K), 
+  w = w, 
+  data = X, 
+  g = g
+)
+
+str(d)
+```
+
+Calculate distance, similarity, and probabilities for multiple prototypes at the same time:
+
+```{r}
+prototypes <- list(
+  P1 = rep(1, K),
+  P2 = rep(0, K),
+  P3 = rep(1:0, K / 2)
+)
+
+out <- compute(prototypes, w, X, g = 10, r = 1)
+out
+```
+
+`consolidate()` the previous output into a single data frame:
+
+```{r}
+d <- consolidate(out)
+str(d)
+```
 

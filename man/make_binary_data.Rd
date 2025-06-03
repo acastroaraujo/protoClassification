@@ -24,5 +24,7 @@ K <- 8
 marginals <- rbeta(K, 2, 3)
 rho <- rlkjcorr(1, K, eta = 1 / 4)
 out <- make_binary_data(marginals, rho)
-str(out)
+head(out)
+colMeans(out)
+marginals
 }

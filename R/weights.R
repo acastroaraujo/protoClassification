@@ -21,7 +21,7 @@
 temperature <- function(w, temp = 1) {
   stopifnot(length(temp) == 1, temp >= 0)
   stopifnot(all(w >= 0 & w <= 1))
-  stopifnot(sum(w) == 1)
+  stopifnot((sum(w) - 1) < 1e-12) # `sum(w) == 1` for floating point math
 
   if (temp == 0) {
     i <- which.max(w)
