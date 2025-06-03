@@ -18,7 +18,9 @@ knitr::opts_chunk$set(
 # protoClassification
 
 <!-- badges: start -->
+
 [![R-CMD-check](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 Install the development version of protoClassification from [GitHub](https://github.com/) with:
@@ -36,9 +38,9 @@ knitr::include_graphics("overview.png")
 
 To simulate a dataset like the one in the Figure you need to create to decide a couple of things first.
 
-1. The number of $K$ dimensions.
-2. The marginal probabilities for each dimension.
-3. A correlation matrix for the dimensions.
+1.  The number of $K$ dimensions.
+2.  The marginal probabilities for each dimension.
+3.  A correlation matrix for the dimensions.
 
 ```{r}
 library(protoClassification)
@@ -63,7 +65,7 @@ X <- make_binary_data(marginals, rho, obs = 1e3)
 head(X, n = 10)
 ```
 
-Verify that the column means _roughly_ correspond to the marginal probabilities.
+Verify that the column means *roughly* correspond to the marginal probabilities.
 
 ```{r}
 colMeans(X) |> round(2)
@@ -77,9 +79,13 @@ psych::tetrachoric(X)$rho |> round(2)
 
 Additional stuff for Prototype Classification Model:
 
-- `g` (gamma) sensitivity parameter
-- `w` a vector of attention weights for each k
-- `P` a list of prototypes
+-   `w` a vector of attention weights for each k
+
+-   `P` a list of prototypes, one per category.
+
+-   `g` (gamma) sensitivity parameter.
+
+    *Note. Apparently it only matters if there's a different gamma assigned to each category. So we don't have to worry a lot about this one.*
 
 ```{r}
 set.seed(1)
@@ -116,7 +122,7 @@ out
 
 `consolidate()` the previous output into a single data frame for easier visualization.
 
-```{r}
+```{r dist-sim, fig.height=3, fig.width=5, dpi = 300}
 d <- consolidate(out)
 str(d)
 
@@ -128,7 +134,6 @@ d |>
   theme_light()
 ```
 
-
 The more relevant piece of information coming from the `compute()` function is the `.$probabilities` object.
 
 ```{r}
@@ -138,14 +143,14 @@ out$probabilities |>
 
 With this you can classify each row in the simulated dataset and then get conditional probabilities for each $K$ feature.
 
-_Deterministically:_
+*Deterministically:*
 
 ```{r}
 category <- apply(out$probabilities, 1, which.max)
 lapply(split(out$data, category), colMeans)
 ```
 
-_Probabilistically:_
+*Probabilistically:*
 
 ```{r}
 category <- apply(out$probabilities, 1, \(x) {
@@ -185,6 +190,6 @@ conditionalProbs(out, .sample = TRUE)
 
 To do:
 
-- Allow `g` to vary by category. 
-- Figure out when "r = 1" or "r = 2" matters.
-- Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)
+-   Allow `g` to vary by category.
+-   Figure out when "r = 1" or "r = 2" matters.
+-   Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)

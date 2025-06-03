@@ -6,6 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 Install the development version of protoClassification from
@@ -96,9 +97,15 @@ psych::tetrachoric(X)$rho |> round(2)
 
 Additional stuff for Prototype Classification Model:
 
-- `g` (gamma) sensitivity parameter
 - `w` a vector of attention weights for each k
-- `P` a list of prototypes
+
+- `P` a list of prototypes, one per category.
+
+- `g` (gamma) sensitivity parameter.
+
+  *Note. Apparently it only matters if there’s a different gamma
+  assigned to each category. So we don’t have to worry a lot about this
+  one.*
 
 ``` r
 set.seed(1)
@@ -193,7 +200,7 @@ d |>
   theme_light()
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-dist-sim-1.png" width="100%" />
 
 The more relevant piece of information coming from the `compute()`
 function is the `.$probabilities` object.
