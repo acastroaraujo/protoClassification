@@ -8,7 +8,7 @@
 [![R-CMD-check](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-You can install the development version of protoClassification from
+Install the development version of protoClassification from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -162,7 +162,8 @@ out
 #> 0.326 0.554 0.274 0.899 0.588 0.275
 ```
 
-`consolidate()` the previous output into a single data frame:
+`consolidate()` the previous output into a single data frame for easier
+visualization.
 
 ``` r
 d <- consolidate(out)
@@ -183,4 +184,138 @@ str(d)
 #>  $ k4   : int  1 1 1 1 1 1 1 1 1 1 ...
 #>  $ k5   : int  1 1 1 1 0 0 1 1 1 1 ...
 #>  $ k6   : int  0 1 0 0 1 0 0 1 0 1 ...
+
+library(ggplot2)
+
+d |> 
+  ggplot(aes(dist1, sim1)) + 
+  geom_jitter(height = 0, width = 1/100, alpha = 1/4) + 
+  theme_light()
 ```
+
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+
+The more relevant piece of information coming from the `compute()`
+function is the `.$probabilities` object.
+
+``` r
+out$probabilities |> 
+  head(n = 10)
+#>            P1           P2          P3
+#> 1  0.03793516 8.451456e-01 0.116919205
+#> 2  0.99880696 4.534577e-05 0.001147689
+#> 3  0.21204400 1.344193e-01 0.653536676
+#> 4  0.57832896 2.451337e-01 0.176537365
+#> 5  0.99802732 8.258837e-04 0.001146794
+#> 6  0.35850294 5.320625e-01 0.109434541
+#> 7  0.03793516 8.451456e-01 0.116919205
+#> 8  0.99726291 1.591178e-03 0.001145915
+#> 9  0.73097337 4.589391e-02 0.223132720
+#> 10 0.99726291 1.591178e-03 0.001145915
+```
+
+With this you can classify each row in the simulated dataset and then
+get conditional probabilities for each $K$ feature.
+
+*Deterministically:*
+
+``` r
+category <- apply(out$probabilities, 1, which.max)
+lapply(split(out$data, category), colMeans)
+#> $`1`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.6011561 0.8265896 0.3728324 0.9161850 0.6213873 0.7312139 
+#> 
+#> $`2`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.1493124 0.4774067 0.0000000 0.9705305 0.5147348 0.0216110 
+#> 
+#> $`3`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.28965517 0.17241379 1.00000000 0.60689655 0.76551724 0.07586207
+```
+
+*Probabilistically:*
+
+``` r
+category <- apply(out$probabilities, 1, \(x) {
+  sample(seq_along(x), size = 1, prob = x)
+})
+lapply(split(out$data, category), colMeans)
+#> $`1`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.5368421 0.7763158 0.3157895 0.9447368 0.5921053 0.6342105 
+#> 
+#> $`2`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.13063063 0.42117117 0.06531532 0.94369369 0.49549550 0.03828829 
+#> 
+#> $`3`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.36363636 0.40909091 0.71022727 0.68750000 0.81250000 0.09659091
+```
+
+Or using the `conditionalProbs()` function.
+
+``` r
+conditionalProbs(out, .sample = TRUE)
+#> $`1`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.5352480 0.7728460 0.3315927 0.9399478 0.6240209 0.6240209 
+#> 
+#> $`2`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.12217195 0.43212670 0.07013575 0.92986425 0.46832579 0.04751131 
+#> 
+#> $`3`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.38285714 0.38285714 0.66285714 0.73142857 0.81142857 0.08571429
+```
+
+The point is to compare different probabilities across different
+parameters values (i.e., compositional effects).
+
+For example:
+
+``` r
+w_unif <- temperature(w, 5) # make weights more uniform
+w_unif
+#> [1] 0.1484224 0.1587893 0.1730981 0.1898107 0.1404808 0.1893986
+
+compute(prototypes, w_unif, X, g = 10, r = 1) |> 
+  conditionalProbs() 
+#> $`1`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.6208955 0.8537313 0.3850746 0.9134328 0.6417910 0.7223881 
+#> 
+#> $`2`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.09143969 0.47665370 0.04474708 0.95136187 0.45330739 0.04863813 
+#> 
+#> $`3`
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.47019868 0.15231788 0.80794702 0.68874172 0.92715232 0.05298013
+
+
+w2 <- vector("double", length(w)) # all attention on dimension 2
+w2[[2]] <- 1
+w2
+#> [1] 0 1 0 0 0 0
+
+compute(prototypes, w2, X, g = 10, r = 2) |> 
+  conditionalProbs() 
+#> $`1`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.3862816 1.0000000 0.2418773 0.8808664 0.5974729 0.3664260 
+#> 
+#> $`2`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.2511211 0.0000000 0.3139013 0.9215247 0.5762332 0.1614350
+```
+
+To do:
+
+- Allow `g` to vary by category.
+- Figure out when “r = 1” or “r = 2” matters.
+- Figure out a best way to measure compositional effects (e.g., relative
+  risk ratio, difference in probabilities)

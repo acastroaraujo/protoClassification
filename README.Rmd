@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/acastroaraujo/protoClassification/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-You can install the development version of protoClassification from [GitHub](https://github.com/) with:
+Install the development version of protoClassification from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
@@ -114,10 +114,74 @@ out <- compute(prototypes, w, X, g = 10, r = 1)
 out
 ```
 
-`consolidate()` the previous output into a single data frame:
+`consolidate()` the previous output into a single data frame for easier visualization.
 
 ```{r}
 d <- consolidate(out)
 str(d)
+
+library(ggplot2)
+
+d |> 
+  ggplot(aes(dist1, sim1)) + 
+  geom_jitter(height = 0, width = 1/100, alpha = 1/4) + 
+  theme_light()
 ```
 
+
+The more relevant piece of information coming from the `compute()` function is the `.$probabilities` object.
+
+```{r}
+out$probabilities |> 
+  head(n = 10)
+```
+
+With this you can classify each row in the simulated dataset and then get conditional probabilities for each $K$ feature.
+
+_Deterministically:_
+
+```{r}
+category <- apply(out$probabilities, 1, which.max)
+lapply(split(out$data, category), colMeans)
+```
+
+_Probabilistically:_
+
+```{r}
+category <- apply(out$probabilities, 1, \(x) {
+  sample(seq_along(x), size = 1, prob = x)
+})
+lapply(split(out$data, category), colMeans)
+```
+
+Or using the `conditionalProbs()` function.
+
+```{r}
+conditionalProbs(out, .sample = TRUE)
+```
+
+The point is to compare different probabilities across different parameters values (i.e., compositional effects).
+
+For example:
+
+```{r}
+w_unif <- temperature(w, 5) # make weights more uniform
+w_unif
+
+compute(prototypes, w_unif, X, g = 10, r = 1) |> 
+  conditionalProbs() 
+
+
+w2 <- vector("double", length(w)) # all attention on dimension 2
+w2[[2]] <- 1
+w2
+
+compute(prototypes, w2, X, g = 10, r = 2) |> 
+  conditionalProbs() 
+```
+
+To do:
+
+- Allow `g` to vary by category. 
+- Figure out when "r = 1" or "r = 2" matters.
+- Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)
