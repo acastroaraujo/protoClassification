@@ -278,39 +278,50 @@ parameters values (i.e., compositional effects).
 For example:
 
 ``` r
+set.seed(1)
+
 w_unif <- temperature(w, 5) # make weights more uniform
 w_unif
 #> [1] 0.1484224 0.1587893 0.1730981 0.1898107 0.1404808 0.1893986
 
-compute(prototypes, w_unif, X, g = 10, r = 1) |> 
-  conditionalProbs() 
+out <- compute(prototypes, w_unif, X, g = 10, r = 1) 
+colMeans(out$probabilities)
+#>        P1        P2        P3 
+#> 0.3756385 0.4490583 0.1753033
+conditionalProbs(out, .sample = TRUE) 
 #> $`1`
 #>        k1        k2        k3        k4        k5        k6 
-#> 0.6208955 0.8537313 0.3850746 0.9134328 0.6417910 0.7223881 
+#> 0.5868946 0.8433048 0.3304843 0.9202279 0.6695157 0.5982906 
 #> 
 #> $`2`
 #>         k1         k2         k3         k4         k5         k6 
-#> 0.09143969 0.47665370 0.04474708 0.95136187 0.45330739 0.04863813 
+#> 0.09251101 0.43612335 0.05947137 0.95814978 0.41189427 0.09691630 
 #> 
 #> $`3`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.47019868 0.15231788 0.80794702 0.68874172 0.92715232 0.05298013
-
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.4000000 0.3076923 0.6717949 0.7230769 0.8512821 0.1076923
 
 w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
 w2
 #> [1] 0 1 0 0 0 0
 
-compute(prototypes, w2, X, g = 10, r = 2) |> 
-  conditionalProbs() 
+out <- compute(prototypes, w2, X, g = 10, r = 1)
+colMeans(out$probabilities)
+#>        P1        P2        P3 
+#> 0.5539598 0.2230201 0.2230201
+conditionalProbs(out, .sample = TRUE) 
 #> $`1`
 #>        k1        k2        k3        k4        k5        k6 
 #> 0.3862816 1.0000000 0.2418773 0.8808664 0.5974729 0.3664260 
 #> 
 #> $`2`
 #>        k1        k2        k3        k4        k5        k6 
-#> 0.2511211 0.0000000 0.3139013 0.9215247 0.5762332 0.1614350
+#> 0.2434783 0.0000000 0.3652174 0.9043478 0.5478261 0.1652174 
+#> 
+#> $`3`
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.2592593 0.0000000 0.2592593 0.9398148 0.6064815 0.1574074
 ```
 
 To do:

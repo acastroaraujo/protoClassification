@@ -89,6 +89,7 @@ conditionalProbs <- function(x, .sample = FALSE) {
     category <- apply(x$probabilities, 1, which.max)
   }
 
+  category <- factor(category, levels = 1:ncol(x$probabilities))
   purrr::map(split(x$data, category), colMeans)
 
 }

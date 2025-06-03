@@ -165,19 +165,22 @@ The point is to compare different probabilities across different parameters valu
 For example:
 
 ```{r}
+set.seed(1)
+
 w_unif <- temperature(w, 5) # make weights more uniform
 w_unif
 
-compute(prototypes, w_unif, X, g = 10, r = 1) |> 
-  conditionalProbs() 
-
+out <- compute(prototypes, w_unif, X, g = 10, r = 1) 
+colMeans(out$probabilities)
+conditionalProbs(out, .sample = TRUE) 
 
 w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
 w2
 
-compute(prototypes, w2, X, g = 10, r = 2) |> 
-  conditionalProbs() 
+out <- compute(prototypes, w2, X, g = 10, r = 1)
+colMeans(out$probabilities)
+conditionalProbs(out, .sample = TRUE) 
 ```
 
 To do:
