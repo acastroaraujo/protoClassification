@@ -32,20 +32,26 @@ calculateDistSim <- function(P, w, data, g, r = 1) {
 #' @export
 #'
 compute <- function(prototypes, w, data, g, r = 1L) {
-  stopifnot(g >= 0)
   stopifnot(r == 1L | r == 2L)
+  stopifnot(all(g >= 0))
   stopifnot(is.list(prototypes))
+  stopifnot(length(prototypes) >= 2)
+  stopifnot(length(prototypes) == length(g))
   stopifnot(all(purrr::map_dbl(prototypes, length) == length(w)))
 
   if (is.null(names(prototypes))) {
-    names(prototypes) <- paste0("P", 1:length(w))
+    names(prototypes) <- paste0("P", 1:length(prototypes))
   }
 
   if (is.null(names(w))) {
     names(w) <- paste0("w", 1:length(w))
   }
 
-  out <- purrr::map(prototypes, function(P) {
+  if (is.null(names(g))) {
+    names(g) <- paste0("g", 1:length(prototypes))
+  }
+
+  out <- purrr::map2(prototypes, g, function(P, g) {
     distance <- apply(data, 1, \(x) sum(w * abs(x - P)^r))
     similarity <- exp(-g * distance)
     data.frame(distance, similarity)
@@ -66,6 +72,39 @@ compute <- function(prototypes, w, data, g, r = 1L) {
 }
 
 
+#' @export
+#'
+print.prototype <- function(x, ...) {
+  output <- utils::capture.output(utils::str(
+    x,
+    give.attr = FALSE,
+    max.level = 1,
+    no.list = TRUE
+  ))
+
+  r <- attr(x, "r")
+  dist <- c("Manhattan", "Euclidean")
+
+  output <- gsub("'data\\.frame':\\s*", "", output)
+  cli::cli_h2("Overview")
+  cli::cli_h3("Output:")
+  cli::cat_line(paste(output, collapse = "\n"))
+  cli::cli_h3("Prototypes:")
+  utils::str(attr(x, "prototypes"), no.list = TRUE)
+  cli::cli_h3("Distance:")
+  cli::cli_text("{dist[[r]]} (r = {r})")
+  cli::cli_h3("Sensitivity:")
+  print(attr(x, "g"))
+  cli::cli_h3("Attention Weights:")
+  print(round(attr(x, "w"), 3))
+  cli::cli_h3("Marginal Probabilities, or {.code colMeans(.$data)}")
+  print(colMeans(x$data))
+  cli::cli_h3("Category Prevalence, or {.code colMeans(.$probabilities)}")
+  print(colMeans(x$probabilities))
+  invisible(x)
+}
+
+
 #' Consolidate computation into a single data frame
 #'
 #' @param x a `prototype` object created by the `compute()` function.
@@ -77,7 +116,8 @@ consolidate <- function(x) {
   stopifnot(inherits(x, "prototype"))
   out <- purrr::imap(x, function(x, i) {
     if (i == "data") return(x)
-    nms <- switch(i,
+    nms <- switch(
+      i,
       "distance" = paste0("dist", 1:ncol(x)),
       "similarity" = paste0("sim", 1:ncol(x)),
       "probabilities" = paste0("prob", 1:ncol(x))
@@ -87,31 +127,6 @@ consolidate <- function(x) {
   })
 
   with(out, cbind(probabilities, similarity, distance, data))
-}
-
-
-#' @export
-#'
-print.prototype <- function(x, ...) {
-  output <- utils::capture.output(utils::str(
-    x,
-    give.attr = FALSE,
-    max.level = 1,
-    no.list = TRUE
-  ))
-  output <- gsub("'data\\.frame':\\s*", "", output)
-  cli::cli_h2("Overview")
-  cli::cli_h3("Output:")
-  cat(paste(output, collapse = "\n"), "\n")
-  cli::cli_h3("Prototypes:")
-  utils::str(attr(x, "prototypes"), no.list = TRUE)
-  cli::cli_h3("Attention Weights:")
-  print(round(attr(x, "w"), 3))
-  cli::cli_h3("Other Parameters:")
-  print(c(g = attr(x, "g"), r = attr(x, "r")))
-  cli::cli_h3("Marginal Probabilities (From Data):")
-  print(colMeans(x$data))
-  invisible(x)
 }
 
 

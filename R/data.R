@@ -30,5 +30,5 @@ make_binary_data <- function(marginals, rho, obs = 1e3) {
   out <- mvtnorm::rmvnorm(obs, mean = mu, sigma = S)
   out <- stats::pnorm(out) > 0.5
   out[] <- as.integer(out)
-  return(as.data.frame(out))
+  structure(as.data.frame(out), params = list(marginals = marginals, rho = rho))
 }

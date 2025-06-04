@@ -30,13 +30,9 @@ Install the development version of protoClassification from [GitHub](https://git
 pak::pak("acastroaraujo/protoClassification")
 ```
 
-```{r overview, echo=FALSE}
-knitr::include_graphics("overview.png")
-```
-
 ## Get Started
 
-To simulate a dataset like the one in the Figure you need to create to decide a couple of things first.
+To simulate a dataset you need to create to decide a couple of things first.
 
 1.  The number of $K$ dimensions.
 2.  The marginal probabilities for each dimension.
@@ -52,29 +48,32 @@ rho <- rlkjcorr(1, K, eta = 1) # 3rd step
 nms <- paste0("k", 1:K)
 names(marginals) <- nms
 dimnames(rho) <- list(nms, nms)
-
-round(rho, 2)
-round(marginals, 2)
 ```
 
 **Generate data.**
 
 ```{r}
 set.seed(1)
-X <- make_binary_data(marginals, rho, obs = 1e3)
-head(X, n = 10)
+sim_data <- make_binary_data(marginals, rho, obs = 1e3)
+head(sim_data, n = 10)
+```
+
+The parameters are stored as the `params` attribute in the output.
+
+```{r}
+attr(sim_data, "params")
 ```
 
 Verify that the column means *roughly* correspond to the marginal probabilities.
 
 ```{r}
-colMeans(X) |> round(2)
+colMeans(sim_data)
 ```
 
 In order to verify that the data follows the correlation structure in `rho` you would have to calculate a "[tetrachoric correlation](https://en.wikipedia.org/wiki/Polychoric_correlation)."
 
 ```{r, warning=FALSE}
-psych::tetrachoric(X)$rho |> round(2)
+psych::tetrachoric(sim_data)$rho
 ```
 
 Additional stuff for Prototype Classification Model:
@@ -84,8 +83,6 @@ Additional stuff for Prototype Classification Model:
 -   `P` a list of prototypes, one per category.
 
 -   `g` (gamma) sensitivity parameter.
-
-    *Note. Apparently it only matters if there's a different gamma assigned to each category. So we don't have to worry a lot about this one.*
 
 ```{r}
 set.seed(1)
@@ -100,7 +97,7 @@ Calculate distance and similarity for one prototype at a time:
 d <- calculateDistSim(
   P = rep(1, K), 
   w = w, 
-  data = X, 
+  data = sim_data, 
   g = g
 )
 
@@ -116,22 +113,17 @@ prototypes <- list(
   P3 = rep(1:0, K / 2)
 )
 
-out <- compute(prototypes, w, X, g = 10, r = 1)
+g <- rep(10, 3)
+
+out <- compute(prototypes, w, sim_data, g = g, r = 1)
 out
 ```
 
 `consolidate()` the previous output into a single data frame for easier visualization.
 
-```{r dist-sim, fig.height=3, fig.width=5, dpi = 300}
+```{r}
 d <- consolidate(out)
 str(d)
-
-library(ggplot2)
-
-d |> 
-  ggplot(aes(dist1, sim1)) + 
-  geom_jitter(height = 0, width = 1/100, alpha = 1/4) + 
-  theme_light()
 ```
 
 ## Compositional Effects
@@ -155,8 +147,7 @@ lapply(split(out$data, category), colMeans)
 or using `conditionalProbsWhichMax()`
 
 ```{r}
-conditionalProbsWhichMax(out) |> 
-  lapply(round)
+conditionalProbsWhichMax(out)
 ```
 
 *Probabilistically:*
@@ -171,8 +162,7 @@ lapply(split(out$data, category), colMeans)
 Or using the `conditionalProbsSample()` function.
 
 ```{r}
-conditionalProbsSample(out, s = 3)
-lapply(conditionalProbsSample(out, s = 300), colMeans)
+conditionalProbsSample(out, s = 4)
 ```
 
 The point is to compare different probabilities across different parameters values (i.e., compositional effects).
@@ -185,7 +175,7 @@ set.seed(1)
 w_unif <- temperature(w, 5) # make weights more uniform
 w_unif
 
-out <- compute(prototypes, w_unif, X, g = 10, r = 1) 
+out <- compute(prototypes, w_unif, sim_data, g, r = 1) 
 colMeans(out$probabilities)
 lapply(conditionalProbsSample(out), colMeans)
 
@@ -193,13 +183,15 @@ w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
 w2
 
-out <- compute(prototypes, w2, X, g = 10, r = 1)
+out <- compute(prototypes, w2, sim_data, g, r = 1)
 colMeans(out$probabilities)
 lapply(conditionalProbsSample(out), colMeans)
 ```
 
+------------------------------------------------------------------------
+
 To do:
 
--   Allow `g` to vary by category.
--   Figure out when "r = 1" or "r = 2" matters.
+-   Figure out when "r = 1" or "r = 2" matters. It seems that Manhattan distance is used when the underlying data is binary. Since I'm only using binary data in these simulations, it seems that this doesn't matter, right?
 -   Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)
+

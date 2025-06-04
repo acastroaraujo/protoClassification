@@ -17,12 +17,10 @@ Install the development version of protoClassification from
 pak::pak("acastroaraujo/protoClassification")
 ```
 
-<img src="overview.png" width="100%" />
-
 ## Get Started
 
-To simulate a dataset like the one in the Figure you need to create to
-decide a couple of things first.
+To simulate a dataset you need to create to decide a couple of things
+first.
 
 1.  The number of $K$ dimensions.
 2.  The marginal probabilities for each dimension.
@@ -38,26 +36,14 @@ rho <- rlkjcorr(1, K, eta = 1) # 3rd step
 nms <- paste0("k", 1:K)
 names(marginals) <- nms
 dimnames(rho) <- list(nms, nms)
-
-round(rho, 2)
-#>       k1    k2    k3    k4    k5    k6
-#> k1  1.00  0.22  0.29  0.15 -0.02  0.36
-#> k2  0.22  1.00 -0.08 -0.21 -0.01  0.37
-#> k3  0.29 -0.08  1.00 -0.75  0.34  0.08
-#> k4  0.15 -0.21 -0.75  1.00 -0.20 -0.34
-#> k5 -0.02 -0.01  0.34 -0.20  1.00 -0.03
-#> k6  0.36  0.37  0.08 -0.34 -0.03  1.00
-round(marginals, 2)
-#>   k1   k2   k3   k4   k5   k6 
-#> 0.33 0.55 0.27 0.88 0.59 0.28
 ```
 
 **Generate data.**
 
 ``` r
 set.seed(1)
-X <- make_binary_data(marginals, rho, obs = 1e3)
-head(X, n = 10)
+sim_data <- make_binary_data(marginals, rho, obs = 1e3)
+head(sim_data, n = 10)
 #>    k1 k2 k3 k4 k5 k6
 #> 1   0  0  0  1  1  0
 #> 2   1  1  1  1  1  1
@@ -71,13 +57,31 @@ head(X, n = 10)
 #> 10  1  1  0  1  1  1
 ```
 
+The parameters are stored as the `params` attribute in the output.
+
+``` r
+attr(sim_data, "params")
+#> $marginals
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.3275025 0.5516990 0.2743131 0.8814780 0.5923401 0.2780523 
+#> 
+#> $rho
+#>             k1           k2          k3         k4           k5          k6
+#> k1  1.00000000  0.223148504  0.28872627  0.1545050 -0.017382124  0.35530360
+#> k2  0.22314850  1.000000000 -0.08484711 -0.2055278 -0.009983913  0.37405720
+#> k3  0.28872627 -0.084847106  1.00000000 -0.7472276  0.341004033  0.08352309
+#> k4  0.15450496 -0.205527752 -0.74722765  1.0000000 -0.200619041 -0.33781820
+#> k5 -0.01738212 -0.009983913  0.34100403 -0.2006190  1.000000000 -0.03222531
+#> k6  0.35530360  0.374057201  0.08352309 -0.3378182 -0.032225308  1.00000000
+```
+
 Verify that the column means *roughly* correspond to the marginal
 probabilities.
 
 ``` r
-colMeans(X) |> round(2)
-#>   k1   k2   k3   k4   k5   k6 
-#> 0.33 0.55 0.27 0.90 0.59 0.28
+colMeans(sim_data)
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.326 0.554 0.274 0.899 0.588 0.275
 ```
 
 In order to verify that the data follows the correlation structure in
@@ -85,14 +89,14 @@ In order to verify that the data follows the correlation structure in
 correlation](https://en.wikipedia.org/wiki/Polychoric_correlation).”
 
 ``` r
-psych::tetrachoric(X)$rho |> round(2)
-#>       k1    k2    k3    k4    k5    k6
-#> k1  1.00  0.23  0.28  0.14 -0.01  0.40
-#> k2  0.23  1.00 -0.13 -0.14  0.03  0.38
-#> k3  0.28 -0.13  1.00 -0.76  0.40  0.08
-#> k4  0.14 -0.14 -0.76  1.00 -0.32 -0.35
-#> k5 -0.01  0.03  0.40 -0.32  1.00 -0.09
-#> k6  0.40  0.38  0.08 -0.35 -0.09  1.00
+psych::tetrachoric(sim_data)$rho
+#>             k1          k2          k3         k4          k5          k6
+#> k1  1.00000000  0.23375492  0.28118697  0.1442114 -0.01192531  0.40365755
+#> k2  0.23375492  1.00000000 -0.13315127 -0.1448709  0.03404136  0.38467926
+#> k3  0.28118697 -0.13315127  1.00000000 -0.7612102  0.40485490  0.07792155
+#> k4  0.14421140 -0.14487091 -0.76121019  1.0000000 -0.31759978 -0.34664697
+#> k5 -0.01192531  0.03404136  0.40485490 -0.3175998  1.00000000 -0.08953172
+#> k6  0.40365755  0.38467926  0.07792155 -0.3466470 -0.08953172  1.00000000
 ```
 
 Additional stuff for Prototype Classification Model:
@@ -102,10 +106,6 @@ Additional stuff for Prototype Classification Model:
 - `P` a list of prototypes, one per category.
 
 - `g` (gamma) sensitivity parameter.
-
-  *Note. Apparently it only matters if there’s a different gamma
-  assigned to each category. So we don’t have to worry a lot about this
-  one.*
 
 ``` r
 set.seed(1)
@@ -120,7 +120,7 @@ Calculate distance and similarity for one prototype at a time:
 d <- calculateDistSim(
   P = rep(1, K), 
   w = w, 
-  data = X, 
+  data = sim_data, 
   g = g
 )
 
@@ -140,7 +140,9 @@ prototypes <- list(
   P3 = rep(1:0, K / 2)
 )
 
-out <- compute(prototypes, w, X, g = 10, r = 1)
+g <- rep(10, 3)
+
+out <- compute(prototypes, w, sim_data, g = g, r = 1)
 out
 #> 
 #> ── Overview ──
@@ -156,17 +158,24 @@ out
 #>  $ P2: num [1:6] 0 0 0 0 0 0
 #>  $ P3: int [1:6] 1 0 1 0 1 0
 #> 
+#> ── Distance:
+#> Manhattan (r = 1)
+#> 
+#> ── Sensitivity:
+#> g1 g2 g3 
+#> 10 10 10
+#> 
 #> ── Attention Weights:
 #>    w1    w2    w3    w4    w5    w6 
 #> 0.082 0.116 0.178 0.282 0.063 0.279
 #> 
-#> ── Other Parameters:
-#>  g  r 
-#> 10  1
-#> 
-#> ── Marginal Probabilities (From Data):
+#> ── Marginal Probabilities, or `colMeans(.$data)`
 #>    k1    k2    k3    k4    k5    k6 
 #> 0.326 0.554 0.274 0.899 0.588 0.275
+#> 
+#> ── Category Prevalence, or `colMeans(.$probabilities)`
+#>        P1        P2        P3 
+#> 0.3883449 0.4360664 0.1755887
 ```
 
 `consolidate()` the previous output into a single data frame for easier
@@ -191,16 +200,7 @@ str(d)
 #>  $ k4   : int  1 1 1 1 1 1 1 1 1 1 ...
 #>  $ k5   : int  1 1 1 1 0 0 1 1 1 1 ...
 #>  $ k6   : int  0 1 0 0 1 0 0 1 0 1 ...
-
-library(ggplot2)
-
-d |> 
-  ggplot(aes(dist1, sim1)) + 
-  geom_jitter(height = 0, width = 1/100, alpha = 1/4) + 
-  theme_light()
 ```
-
-<img src="man/figures/README-dist-sim-1.png" width="100%" />
 
 ## Compositional Effects
 
@@ -247,19 +247,18 @@ lapply(split(out$data, category), colMeans)
 or using `conditionalProbsWhichMax()`
 
 ``` r
-conditionalProbsWhichMax(out) |> 
-  lapply(round)
+conditionalProbsWhichMax(out)
 #> $`1`
-#> k1 k2 k3 k4 k5 k6 
-#>  1  1  0  1  1  1 
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.6011561 0.8265896 0.3728324 0.9161850 0.6213873 0.7312139 
 #> 
 #> $`2`
-#> k1 k2 k3 k4 k5 k6 
-#>  0  0  0  1  1  0 
+#>        k1        k2        k3        k4        k5        k6 
+#> 0.1493124 0.4774067 0.0000000 0.9705305 0.5147348 0.0216110 
 #> 
 #> $`3`
-#> k1 k2 k3 k4 k5 k6 
-#>  0  0  1  1  1  0
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.28965517 0.17241379 1.00000000 0.60689655 0.76551724 0.07586207
 ```
 
 *Probabilistically:*
@@ -271,50 +270,41 @@ category <- apply(out$probabilities, 1, \(x) {
 lapply(split(out$data, category), colMeans)
 #> $`1`
 #>        k1        k2        k3        k4        k5        k6 
-#> 0.5368421 0.7763158 0.3157895 0.9447368 0.5921053 0.6342105 
+#> 0.5350649 0.7714286 0.3428571 0.9298701 0.6207792 0.6259740 
 #> 
 #> $`2`
 #>         k1         k2         k3         k4         k5         k6 
-#> 0.13063063 0.42117117 0.06531532 0.94369369 0.49549550 0.03828829 
+#> 0.14699332 0.43207127 0.06458797 0.94432071 0.47884187 0.04231626 
 #> 
 #> $`3`
 #>         k1         k2         k3         k4         k5         k6 
-#> 0.36363636 0.40909091 0.71022727 0.68750000 0.81250000 0.09659091
+#> 0.32530120 0.37951807 0.68072289 0.70481928 0.80722892 0.09036145
 ```
 
 Or using the `conditionalProbsSample()` function.
 
 ``` r
-conditionalProbsSample(out, s = 3)
+conditionalProbsSample(out, s = 4)
 #> $`1`
 #>             k1        k2        k3        k4        k5        k6
-#> [1,] 0.5269923 0.7763496 0.3419023 0.9254499 0.6169666 0.6375321
-#> [2,] 0.5242967 0.7621483 0.3017903 0.9488491 0.6086957 0.6035806
-#> [3,] 0.5184275 0.7592138 0.3464373 0.9361179 0.6314496 0.5945946
+#> [1,] 0.5172414 0.7851459 0.3315650 0.9363395 0.6021220 0.6392573
+#> [2,] 0.5231959 0.7628866 0.3376289 0.9561856 0.6005155 0.6056701
+#> [3,] 0.5361930 0.7613941 0.3431635 0.9436997 0.6139410 0.6327078
+#> [4,] 0.5319693 0.7774936 0.3324808 0.9283887 0.6138107 0.6265985
 #> 
 #> $`2`
 #>             k1        k2         k3        k4        k5         k6
-#> [1,] 0.1267281 0.4147465 0.04838710 0.9447005 0.5000000 0.03456221
-#> [2,] 0.1402299 0.4275862 0.05747126 0.9517241 0.4942529 0.03448276
-#> [3,] 0.1267606 0.4366197 0.05164319 0.9460094 0.4647887 0.04225352
+#> [1,] 0.1372998 0.4256293 0.05720824 0.9450801 0.4965675 0.03661327
+#> [2,] 0.1359447 0.4377880 0.04608295 0.9423963 0.4838710 0.04377880
+#> [3,] 0.1353712 0.4563319 0.05676856 0.9454148 0.5065502 0.04585153
+#> [4,] 0.1285047 0.4369159 0.05373832 0.9415888 0.4813084 0.04205607
 #> 
 #> $`3`
 #>             k1        k2        k3        k4        k5         k6
-#> [1,] 0.3728814 0.4067797 0.6779661 0.7288136 0.7401130 0.06779661
-#> [2,] 0.3448276 0.4022989 0.7528736 0.6551724 0.7758621 0.13793103
-#> [3,] 0.3652695 0.3532934 0.6646707 0.6886228 0.7964072 0.08982036
-lapply(conditionalProbsSample(out, s = 300), colMeans)
-#> $`1`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.5234819 0.7797454 0.3281954 0.9333572 0.6160911 0.6264009 
-#> 
-#> $`2`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.13054443 0.42881060 0.05782722 0.94711440 0.48176097 0.03786684 
-#> 
-#> $`3`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.37572558 0.36587367 0.69241220 0.70323026 0.78996265 0.08861524
+#> [1,] 0.3817204 0.3870968 0.6666667 0.7150538 0.7741935 0.09677419
+#> [2,] 0.3595506 0.3820225 0.6910112 0.6685393 0.8146067 0.11797753
+#> [3,] 0.3786982 0.3609467 0.7100592 0.6745562 0.7514793 0.10650888
+#> [4,] 0.3480663 0.3480663 0.6685083 0.7348066 0.7845304 0.06629834
 ```
 
 The point is to compare different probabilities across different
@@ -329,7 +319,7 @@ w_unif <- temperature(w, 5) # make weights more uniform
 w_unif
 #> [1] 0.1484224 0.1587893 0.1730981 0.1898107 0.1404808 0.1893986
 
-out <- compute(prototypes, w_unif, X, g = 10, r = 1) 
+out <- compute(prototypes, w_unif, sim_data, g, r = 1) 
 colMeans(out$probabilities)
 #>        P1        P2        P3 
 #> 0.3756385 0.4490583 0.1753033
@@ -351,7 +341,7 @@ w2[[2]] <- 1
 w2
 #> [1] 0 1 0 0 0 0
 
-out <- compute(prototypes, w2, X, g = 10, r = 1)
+out <- compute(prototypes, w2, sim_data, g, r = 1)
 colMeans(out$probabilities)
 #>        P1        P2        P3 
 #> 0.5539598 0.2230201 0.2230201
@@ -369,9 +359,13 @@ lapply(conditionalProbsSample(out), colMeans)
 #> 0.2500407668 0.0001483611 0.3152627789 0.9213332572 0.5748832335 0.1607855121
 ```
 
+------------------------------------------------------------------------
+
 To do:
 
-- Allow `g` to vary by category.
-- Figure out when “r = 1” or “r = 2” matters.
+- Figure out when “r = 1” or “r = 2” matters. It seems that Manhattan
+  distance is used when the underlying data is binary. Since I’m only
+  using binary data in these simulations, it seems that this doesn’t
+  matter, right?
 - Figure out a best way to measure compositional effects (e.g., relative
   risk ratio, difference in probabilities)
