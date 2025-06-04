@@ -34,7 +34,7 @@ pak::pak("acastroaraujo/protoClassification")
 knitr::include_graphics("overview.png")
 ```
 
-### Get Started
+## Get Started
 
 To simulate a dataset like the one in the Figure you need to create to decide a couple of things first.
 
@@ -134,6 +134,8 @@ d |>
   theme_light()
 ```
 
+## Compositional Effects
+
 The more relevant piece of information coming from the `compute()` function is the `.$probabilities` object.
 
 ```{r}
@@ -150,6 +152,13 @@ category <- apply(out$probabilities, 1, which.max)
 lapply(split(out$data, category), colMeans)
 ```
 
+or using `conditionalProbsWhichMax()`
+
+```{r}
+conditionalProbsWhichMax(out) |> 
+  lapply(round)
+```
+
 *Probabilistically:*
 
 ```{r}
@@ -159,10 +168,11 @@ category <- apply(out$probabilities, 1, \(x) {
 lapply(split(out$data, category), colMeans)
 ```
 
-Or using the `conditionalProbs()` function.
+Or using the `conditionalProbsSample()` function.
 
 ```{r}
-conditionalProbs(out, .sample = TRUE)
+conditionalProbsSample(out, s = 3)
+lapply(conditionalProbsSample(out, s = 300), colMeans)
 ```
 
 The point is to compare different probabilities across different parameters values (i.e., compositional effects).
@@ -177,7 +187,7 @@ w_unif
 
 out <- compute(prototypes, w_unif, X, g = 10, r = 1) 
 colMeans(out$probabilities)
-conditionalProbs(out, .sample = TRUE) 
+lapply(conditionalProbsSample(out), colMeans)
 
 w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
@@ -185,7 +195,7 @@ w2
 
 out <- compute(prototypes, w2, X, g = 10, r = 1)
 colMeans(out$probabilities)
-conditionalProbs(out, .sample = TRUE) 
+lapply(conditionalProbsSample(out), colMeans)
 ```
 
 To do:

@@ -19,7 +19,7 @@ pak::pak("acastroaraujo/protoClassification")
 
 <img src="overview.png" width="100%" />
 
-### Get Started
+## Get Started
 
 To simulate a dataset like the one in the Figure you need to create to
 decide a couple of things first.
@@ -202,6 +202,8 @@ d |>
 
 <img src="man/figures/README-dist-sim-1.png" width="100%" />
 
+## Compositional Effects
+
 The more relevant piece of information coming from the `compute()`
 function is the `.$probabilities` object.
 
@@ -242,6 +244,24 @@ lapply(split(out$data, category), colMeans)
 #> 0.28965517 0.17241379 1.00000000 0.60689655 0.76551724 0.07586207
 ```
 
+or using `conditionalProbsWhichMax()`
+
+``` r
+conditionalProbsWhichMax(out) |> 
+  lapply(round)
+#> $`1`
+#> k1 k2 k3 k4 k5 k6 
+#>  1  1  0  1  1  1 
+#> 
+#> $`2`
+#> k1 k2 k3 k4 k5 k6 
+#>  0  0  0  1  1  0 
+#> 
+#> $`3`
+#> k1 k2 k3 k4 k5 k6 
+#>  0  0  1  1  1  0
+```
+
 *Probabilistically:*
 
 ``` r
@@ -262,21 +282,39 @@ lapply(split(out$data, category), colMeans)
 #> 0.36363636 0.40909091 0.71022727 0.68750000 0.81250000 0.09659091
 ```
 
-Or using the `conditionalProbs()` function.
+Or using the `conditionalProbsSample()` function.
 
 ``` r
-conditionalProbs(out, .sample = TRUE)
+conditionalProbsSample(out, s = 3)
+#> $`1`
+#>             k1        k2        k3        k4        k5        k6
+#> [1,] 0.5269923 0.7763496 0.3419023 0.9254499 0.6169666 0.6375321
+#> [2,] 0.5242967 0.7621483 0.3017903 0.9488491 0.6086957 0.6035806
+#> [3,] 0.5184275 0.7592138 0.3464373 0.9361179 0.6314496 0.5945946
+#> 
+#> $`2`
+#>             k1        k2         k3        k4        k5         k6
+#> [1,] 0.1267281 0.4147465 0.04838710 0.9447005 0.5000000 0.03456221
+#> [2,] 0.1402299 0.4275862 0.05747126 0.9517241 0.4942529 0.03448276
+#> [3,] 0.1267606 0.4366197 0.05164319 0.9460094 0.4647887 0.04225352
+#> 
+#> $`3`
+#>             k1        k2        k3        k4        k5         k6
+#> [1,] 0.3728814 0.4067797 0.6779661 0.7288136 0.7401130 0.06779661
+#> [2,] 0.3448276 0.4022989 0.7528736 0.6551724 0.7758621 0.13793103
+#> [3,] 0.3652695 0.3532934 0.6646707 0.6886228 0.7964072 0.08982036
+lapply(conditionalProbsSample(out, s = 300), colMeans)
 #> $`1`
 #>        k1        k2        k3        k4        k5        k6 
-#> 0.5352480 0.7728460 0.3315927 0.9399478 0.6240209 0.6240209 
+#> 0.5234819 0.7797454 0.3281954 0.9333572 0.6160911 0.6264009 
 #> 
 #> $`2`
 #>         k1         k2         k3         k4         k5         k6 
-#> 0.12217195 0.43212670 0.07013575 0.92986425 0.46832579 0.04751131 
+#> 0.13054443 0.42881060 0.05782722 0.94711440 0.48176097 0.03786684 
 #> 
 #> $`3`
 #>         k1         k2         k3         k4         k5         k6 
-#> 0.38285714 0.38285714 0.66285714 0.73142857 0.81142857 0.08571429
+#> 0.37572558 0.36587367 0.69241220 0.70323026 0.78996265 0.08861524
 ```
 
 The point is to compare different probabilities across different
@@ -295,18 +333,18 @@ out <- compute(prototypes, w_unif, X, g = 10, r = 1)
 colMeans(out$probabilities)
 #>        P1        P2        P3 
 #> 0.3756385 0.4490583 0.1753033
-conditionalProbs(out, .sample = TRUE) 
+lapply(conditionalProbsSample(out), colMeans)
 #> $`1`
 #>        k1        k2        k3        k4        k5        k6 
-#> 0.5868946 0.8433048 0.3304843 0.9202279 0.6695157 0.5982906 
+#> 0.5566259 0.8468616 0.3361051 0.9199907 0.6817711 0.5696243 
 #> 
 #> $`2`
 #>         k1         k2         k3         k4         k5         k6 
-#> 0.09251101 0.43612335 0.05947137 0.95814978 0.41189427 0.09691630 
+#> 0.09288501 0.40581912 0.07314591 0.94327842 0.40425477 0.09909872 
 #> 
 #> $`3`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.4000000 0.3076923 0.6717949 0.7230769 0.8512821 0.1076923
+#>         k1         k2         k3         k4         k5         k6 
+#> 0.43007908 0.30661288 0.65651922 0.74042225 0.85802388 0.09563047
 
 w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
@@ -317,18 +355,18 @@ out <- compute(prototypes, w2, X, g = 10, r = 1)
 colMeans(out$probabilities)
 #>        P1        P2        P3 
 #> 0.5539598 0.2230201 0.2230201
-conditionalProbs(out, .sample = TRUE) 
+lapply(conditionalProbsSample(out), colMeans)
 #> $`1`
 #>        k1        k2        k3        k4        k5        k6 
-#> 0.3862816 1.0000000 0.2418773 0.8808664 0.5974729 0.3664260 
+#> 0.3862720 0.9999700 0.2418796 0.8808504 0.5974812 0.3664268 
 #> 
 #> $`2`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.2434783 0.0000000 0.3652174 0.9043478 0.5478261 0.1652174 
+#>           k1           k2           k3           k4           k5           k6 
+#> 0.2521416519 0.0001307952 0.3125469149 0.9218006172 0.5773686258 0.1620330876 
 #> 
 #> $`3`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.2592593 0.0000000 0.2592593 0.9398148 0.6064815 0.1574074
+#>           k1           k2           k3           k4           k5           k6 
+#> 0.2500407668 0.0001483611 0.3152627789 0.9213332572 0.5748832335 0.1607855121
 ```
 
 To do:

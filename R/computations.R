@@ -66,35 +66,6 @@ compute <- function(prototypes, w, data, g, r = 1L) {
 }
 
 
-#' Get Conditional Probabilities for K Features
-#'
-#' @param x a `prototype` object created by the `compute()` function.
-#' @param .sample an indicator that determines whether the classification is done
-#'  using `which.max` (`.sample = FALSE`) or using `sample` (`.sample = TRUE`)
-#'
-#' @returns a list of conditional probabilities; e.g., `Pr(K = 1 | C = 1)`
-#' @export
-#'
-conditionalProbs <- function(x, .sample = FALSE) {
-  stopifnot(inherits(x, "prototype"))
-  stopifnot(is.logical(.sample) & length(.sample) == 1L)
-
-  if (isTRUE(.sample)) {
-    category <- apply(x$probabilities, 1, function(x) {
-      sample(seq_along(x), size = 1L, prob = x)
-    })
-  }
-
-  if (isFALSE(.sample)) {
-    category <- apply(x$probabilities, 1, which.max)
-  }
-
-  category <- factor(category, levels = 1:ncol(x$probabilities))
-  purrr::map(split(x$data, category), colMeans)
-
-}
-
-
 #' Consolidate computation into a single data frame
 #'
 #' @param x a `prototype` object created by the `compute()` function.
@@ -141,4 +112,46 @@ print.prototype <- function(x, ...) {
   cli::cli_h3("Marginal Probabilities (From Data):")
   print(colMeans(x$data))
   invisible(x)
+}
+
+
+#' Get Conditional Probabilities for K Features
+#'
+#' @param x a `prototype` object created by the `compute()` function.
+#'
+#' @returns a list of conditional probabilities; e.g., `Pr(K = 1 | C = 1)`
+#' @export
+#'
+conditionalProbsWhichMax <- function(x) {
+  stopifnot(inherits(x, "prototype"))
+  category <- apply(x$probabilities, 1, which.max)
+  category <- factor(category, levels = 1:ncol(x$probabilities))
+  purrr::map(split(x$data, category), colMeans)
+}
+
+
+#' Get Conditional Probabilities for K Features
+#'
+#' @param x a `prototype` object created by the `compute()` function.
+#' @param s number of draws to sample from the `.$probabilities` object created
+#'  by the `compute()` function
+#'
+#' @returns a list of conditional probabilities; e.g., `Pr(K = 1 | C = 1)`
+#' @export
+#'
+conditionalProbsSample <- function(x, s = 300) {
+  stopifnot(inherits(x, "prototype"))
+  stopifnot(s > 1)
+
+  categories <- apply(x$probabilities, 1, function(x) {
+    sample(seq_along(x), size = s, replace = TRUE, prob = x)
+  })
+
+  output <- apply(categories, 1, function(i) {
+    i <- factor(i, levels = 1:ncol(x$probabilities))
+    purrr::map(split(x$data, i), colMeans)
+  })
+
+  output <- purrr::list_transpose(output)
+  purrr::map(output, \(x) do.call(rbind, x))
 }
