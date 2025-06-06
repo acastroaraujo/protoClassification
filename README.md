@@ -172,10 +172,6 @@ out
 #> ── Marginal Probabilities, or `colMeans(.$data)`
 #>    k1    k2    k3    k4    k5    k6 
 #> 0.326 0.554 0.274 0.899 0.588 0.275
-#> 
-#> ── Category Prevalence, or `colMeans(.$probabilities)`
-#>        P1        P2        P3 
-#> 0.3883449 0.4360664 0.1755887
 ```
 
 `consolidate()` the previous output into a single data frame for easier
@@ -226,85 +222,34 @@ out$probabilities |>
 With this you can classify each row in the simulated dataset and then
 get conditional probabilities for each $K$ feature.
 
-*Deterministically:*
+There are two functions to calculate the compositional effects of one of
+these simulations.
+
+- `conditionalProbsWhichMax()`
+
+- `conditionalProbsSample()`
+
+Alternatively, it’s easier to use the `summary()` function.
 
 ``` r
-category <- apply(out$probabilities, 1, which.max)
-lapply(split(out$data, category), colMeans)
+summary(out)
+#> 
+#> ── Category Prevalence, or `colMeans(object$probabilities)`
+#>    P1    P2    P3 
+#> 0.388 0.436 0.176
+#> 
+#> ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`
 #> $`1`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.6011561 0.8265896 0.3728324 0.9161850 0.6213873 0.7312139 
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.523 0.780 0.328 0.933 0.617 0.626 
 #> 
 #> $`2`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.1493124 0.4774067 0.0000000 0.9705305 0.5147348 0.0216110 
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.130 0.430 0.058 0.947 0.482 0.038 
 #> 
 #> $`3`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.28965517 0.17241379 1.00000000 0.60689655 0.76551724 0.07586207
-```
-
-or using `conditionalProbsWhichMax()`
-
-``` r
-conditionalProbsWhichMax(out)
-#> $`1`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.6011561 0.8265896 0.3728324 0.9161850 0.6213873 0.7312139 
-#> 
-#> $`2`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.1493124 0.4774067 0.0000000 0.9705305 0.5147348 0.0216110 
-#> 
-#> $`3`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.28965517 0.17241379 1.00000000 0.60689655 0.76551724 0.07586207
-```
-
-*Probabilistically:*
-
-``` r
-category <- apply(out$probabilities, 1, \(x) {
-  sample(seq_along(x), size = 1, prob = x)
-})
-lapply(split(out$data, category), colMeans)
-#> $`1`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.5350649 0.7714286 0.3428571 0.9298701 0.6207792 0.6259740 
-#> 
-#> $`2`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.14699332 0.43207127 0.06458797 0.94432071 0.47884187 0.04231626 
-#> 
-#> $`3`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.32530120 0.37951807 0.68072289 0.70481928 0.80722892 0.09036145
-```
-
-Or using the `conditionalProbsSample()` function.
-
-``` r
-conditionalProbsSample(out, s = 4)
-#> $`1`
-#>             k1        k2        k3        k4        k5        k6
-#> [1,] 0.5172414 0.7851459 0.3315650 0.9363395 0.6021220 0.6392573
-#> [2,] 0.5231959 0.7628866 0.3376289 0.9561856 0.6005155 0.6056701
-#> [3,] 0.5361930 0.7613941 0.3431635 0.9436997 0.6139410 0.6327078
-#> [4,] 0.5319693 0.7774936 0.3324808 0.9283887 0.6138107 0.6265985
-#> 
-#> $`2`
-#>             k1        k2         k3        k4        k5         k6
-#> [1,] 0.1372998 0.4256293 0.05720824 0.9450801 0.4965675 0.03661327
-#> [2,] 0.1359447 0.4377880 0.04608295 0.9423963 0.4838710 0.04377880
-#> [3,] 0.1353712 0.4563319 0.05676856 0.9454148 0.5065502 0.04585153
-#> [4,] 0.1285047 0.4369159 0.05373832 0.9415888 0.4813084 0.04205607
-#> 
-#> $`3`
-#>             k1        k2        k3        k4        k5         k6
-#> [1,] 0.3817204 0.3870968 0.6666667 0.7150538 0.7741935 0.09677419
-#> [2,] 0.3595506 0.3820225 0.6910112 0.6685393 0.8146067 0.11797753
-#> [3,] 0.3786982 0.3609467 0.7100592 0.6745562 0.7514793 0.10650888
-#> [4,] 0.3480663 0.3480663 0.6685083 0.7348066 0.7845304 0.06629834
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.377 0.362 0.690 0.705 0.786 0.088
 ```
 
 The point is to compare different probabilities across different
@@ -320,21 +265,24 @@ w_unif
 #> [1] 0.1484224 0.1587893 0.1730981 0.1898107 0.1404808 0.1893986
 
 out <- compute(prototypes, w_unif, sim_data, g, r = 1) 
-colMeans(out$probabilities)
-#>        P1        P2        P3 
-#> 0.3756385 0.4490583 0.1753033
-lapply(conditionalProbsSample(out), colMeans)
+summary(out)
+#> 
+#> ── Category Prevalence, or `colMeans(object$probabilities)`
+#>    P1    P2    P3 
+#> 0.376 0.449 0.175
+#> 
+#> ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`
 #> $`1`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.5566259 0.8468616 0.3361051 0.9199907 0.6817711 0.5696243 
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.555 0.847 0.335 0.920 0.683 0.569 
 #> 
 #> $`2`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.09288501 0.40581912 0.07314591 0.94327842 0.40425477 0.09909872 
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.094 0.406 0.073 0.944 0.403 0.098 
 #> 
 #> $`3`
-#>         k1         k2         k3         k4         k5         k6 
-#> 0.43007908 0.30661288 0.65651922 0.74042225 0.85802388 0.09563047
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.429 0.302 0.659 0.739 0.857 0.096
 
 w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
@@ -342,21 +290,24 @@ w2
 #> [1] 0 1 0 0 0 0
 
 out <- compute(prototypes, w2, sim_data, g, r = 1)
-colMeans(out$probabilities)
-#>        P1        P2        P3 
-#> 0.5539598 0.2230201 0.2230201
-lapply(conditionalProbsSample(out), colMeans)
+summary(out)
+#> 
+#> ── Category Prevalence, or `colMeans(object$probabilities)`
+#>    P1    P2    P3 
+#> 0.554 0.223 0.223
+#> 
+#> ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`
 #> $`1`
-#>        k1        k2        k3        k4        k5        k6 
-#> 0.3862720 0.9999700 0.2418796 0.8808504 0.5974812 0.3664268 
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.386 1.000 0.242 0.881 0.597 0.366 
 #> 
 #> $`2`
-#>           k1           k2           k3           k4           k5           k6 
-#> 0.2521416519 0.0001307952 0.3125469149 0.9218006172 0.5773686258 0.1620330876 
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.252 0.000 0.317 0.921 0.577 0.162 
 #> 
 #> $`3`
-#>           k1           k2           k3           k4           k5           k6 
-#> 0.2500407668 0.0001483611 0.3152627789 0.9213332572 0.5748832335 0.1607855121
+#>    k1    k2    k3    k4    k5    k6 
+#> 0.250 0.000 0.311 0.922 0.576 0.161
 ```
 
 ------------------------------------------------------------------------

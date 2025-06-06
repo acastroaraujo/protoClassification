@@ -4,7 +4,7 @@
 \alias{conditionalProbsSample}
 \title{Get Conditional Probabilities for K Features}
 \usage{
-conditionalProbsSample(x, s = 300)
+conditionalProbsSample(x, s = 500)
 }
 \arguments{
 \item{x}{a `prototype` object created by the `compute()` function.}

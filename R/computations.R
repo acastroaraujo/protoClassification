@@ -71,6 +71,20 @@ compute <- function(prototypes, w, data, g, r = 1L) {
   )
 }
 
+#' @export
+#'
+summary.prototype <- function(object, s = 500, ...) {
+  conditional_p <- purrr::map(conditionalProbsSample(object, s), colMeans)
+  prevalence <- colMeans(object$probabilities)
+  cli::cli_h3("Category Prevalence, or {.code colMeans(object$probabilities)}")
+  print(round(prevalence, 3))
+  cli::cli_h3(
+    "Conditional Probabilities, or {.code lapply(conditionalProbsSample(object), colMeans)}"
+  )
+  print(purrr::map(conditional_p, round, 3))
+  output <- list(prevalence = prevalence, conditionalProbs = conditional_p)
+  invisible(output)
+}
 
 #' @export
 #'
@@ -99,11 +113,8 @@ print.prototype <- function(x, ...) {
   print(round(attr(x, "w"), 3))
   cli::cli_h3("Marginal Probabilities, or {.code colMeans(.$data)}")
   print(colMeans(x$data))
-  cli::cli_h3("Category Prevalence, or {.code colMeans(.$probabilities)}")
-  print(colMeans(x$probabilities))
   invisible(x)
 }
-
 
 #' Consolidate computation into a single data frame
 #'
@@ -129,7 +140,6 @@ consolidate <- function(x) {
   with(out, cbind(probabilities, similarity, distance, data))
 }
 
-
 #' Get Conditional Probabilities for K Features
 #'
 #' @param x a `prototype` object created by the `compute()` function.
@@ -144,7 +154,6 @@ conditionalProbsWhichMax <- function(x) {
   purrr::map(split(x$data, category), colMeans)
 }
 
-
 #' Get Conditional Probabilities for K Features
 #'
 #' @param x a `prototype` object created by the `compute()` function.
@@ -154,7 +163,7 @@ conditionalProbsWhichMax <- function(x) {
 #' @returns a list of conditional probabilities; e.g., `Pr(K = 1 | C = 1)`
 #' @export
 #'
-conditionalProbsSample <- function(x, s = 300) {
+conditionalProbsSample <- function(x, s = 500) {
   stopifnot(inherits(x, "prototype"))
   stopifnot(s > 1)
 

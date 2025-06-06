@@ -137,32 +137,16 @@ out$probabilities |>
 
 With this you can classify each row in the simulated dataset and then get conditional probabilities for each $K$ feature.
 
-*Deterministically:*
+There are two functions to calculate the compositional effects of one of these simulations.
+
+-   `conditionalProbsWhichMax()`
+
+-   `conditionalProbsSample()`
+
+Alternatively, it's easier to use the `summary()` function.
 
 ```{r}
-category <- apply(out$probabilities, 1, which.max)
-lapply(split(out$data, category), colMeans)
-```
-
-or using `conditionalProbsWhichMax()`
-
-```{r}
-conditionalProbsWhichMax(out)
-```
-
-*Probabilistically:*
-
-```{r}
-category <- apply(out$probabilities, 1, \(x) {
-  sample(seq_along(x), size = 1, prob = x)
-})
-lapply(split(out$data, category), colMeans)
-```
-
-Or using the `conditionalProbsSample()` function.
-
-```{r}
-conditionalProbsSample(out, s = 4)
+summary(out)
 ```
 
 The point is to compare different probabilities across different parameters values (i.e., compositional effects).
@@ -176,16 +160,14 @@ w_unif <- temperature(w, 5) # make weights more uniform
 w_unif
 
 out <- compute(prototypes, w_unif, sim_data, g, r = 1) 
-colMeans(out$probabilities)
-lapply(conditionalProbsSample(out), colMeans)
+summary(out)
 
 w2 <- vector("double", length(w)) # all attention on dimension 2
 w2[[2]] <- 1
 w2
 
 out <- compute(prototypes, w2, sim_data, g, r = 1)
-colMeans(out$probabilities)
-lapply(conditionalProbsSample(out), colMeans)
+summary(out)
 ```
 
 ------------------------------------------------------------------------
@@ -194,4 +176,3 @@ To do:
 
 -   Figure out when "r = 1" or "r = 2" matters. It seems that Manhattan distance is used when the underlying data is binary. Since I'm only using binary data in these simulations, it seems that this doesn't matter, right?
 -   Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)
-
