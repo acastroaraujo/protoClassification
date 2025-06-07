@@ -71,7 +71,7 @@
 <span><span class="va">marginals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">rbeta</a></span><span class="op">(</span><span class="va">K</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span> <span class="co"># 2nd step</span></span>
 <span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># 3rd step</span></span>
 <span></span>
-<span><span class="va">nms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"k"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span></span>
+<span><span class="va">nms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">marginals</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">nms</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">rho</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">nms</span>, <span class="va">nms</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Generate data.</strong></p>
@@ -79,7 +79,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">marginals</span>, <span class="va">rho</span>, obs <span class="op">=</span> <span class="fl">1e3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim_data</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    k1 k2 k3 k4 k5 k6</span></span>
+<span><span class="co">#&gt;    x1 x2 x3 x4 x5 x6</span></span>
 <span><span class="co">#&gt; 1   0  0  0  1  1  0</span></span>
 <span><span class="co">#&gt; 2   1  1  1  1  1  1</span></span>
 <span><span class="co">#&gt; 3   0  0  1  1  1  0</span></span>
@@ -94,32 +94,32 @@
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="st">"params"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $marginals</span></span>
-<span><span class="co">#&gt;        k1        k2        k3        k4        k5        k6 </span></span>
+<span><span class="co">#&gt;        x1        x2        x3        x4        x5        x6 </span></span>
 <span><span class="co">#&gt; 0.3275025 0.5516990 0.2743131 0.8814780 0.5923401 0.2780523 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rho</span></span>
-<span><span class="co">#&gt;             k1           k2          k3         k4           k5          k6</span></span>
-<span><span class="co">#&gt; k1  1.00000000  0.223148504  0.28872627  0.1545050 -0.017382124  0.35530360</span></span>
-<span><span class="co">#&gt; k2  0.22314850  1.000000000 -0.08484711 -0.2055278 -0.009983913  0.37405720</span></span>
-<span><span class="co">#&gt; k3  0.28872627 -0.084847106  1.00000000 -0.7472276  0.341004033  0.08352309</span></span>
-<span><span class="co">#&gt; k4  0.15450496 -0.205527752 -0.74722765  1.0000000 -0.200619041 -0.33781820</span></span>
-<span><span class="co">#&gt; k5 -0.01738212 -0.009983913  0.34100403 -0.2006190  1.000000000 -0.03222531</span></span>
-<span><span class="co">#&gt; k6  0.35530360  0.374057201  0.08352309 -0.3378182 -0.032225308  1.00000000</span></span></code></pre></div>
+<span><span class="co">#&gt;             x1           x2          x3         x4           x5          x6</span></span>
+<span><span class="co">#&gt; x1  1.00000000  0.223148504  0.28872627  0.1545050 -0.017382124  0.35530360</span></span>
+<span><span class="co">#&gt; x2  0.22314850  1.000000000 -0.08484711 -0.2055278 -0.009983913  0.37405720</span></span>
+<span><span class="co">#&gt; x3  0.28872627 -0.084847106  1.00000000 -0.7472276  0.341004033  0.08352309</span></span>
+<span><span class="co">#&gt; x4  0.15450496 -0.205527752 -0.74722765  1.0000000 -0.200619041 -0.33781820</span></span>
+<span><span class="co">#&gt; x5 -0.01738212 -0.009983913  0.34100403 -0.2006190  1.000000000 -0.03222531</span></span>
+<span><span class="co">#&gt; x6  0.35530360  0.374057201  0.08352309 -0.3378182 -0.032225308  1.00000000</span></span></code></pre></div>
 <p>Verify that the column means <em>roughly</em> correspond to the marginal probabilities.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span></code></pre></div>
 <p>In order to verify that the data follows the correlation structure in <code>rho</code> you would have to calculate a “<a href="https://en.wikipedia.org/wiki/Polychoric_correlation" class="external-link">tetrachoric correlation</a>.”</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">psych</span><span class="fu">::</span><span class="fu">tetrachoric</span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span><span class="op">$</span><span class="va">rho</span></span>
-<span><span class="co">#&gt;             k1          k2          k3         k4          k5          k6</span></span>
-<span><span class="co">#&gt; k1  1.00000000  0.23375492  0.28118697  0.1442114 -0.01192531  0.40365755</span></span>
-<span><span class="co">#&gt; k2  0.23375492  1.00000000 -0.13315127 -0.1448709  0.03404136  0.38467926</span></span>
-<span><span class="co">#&gt; k3  0.28118697 -0.13315127  1.00000000 -0.7612102  0.40485490  0.07792155</span></span>
-<span><span class="co">#&gt; k4  0.14421140 -0.14487091 -0.76121019  1.0000000 -0.31759978 -0.34664697</span></span>
-<span><span class="co">#&gt; k5 -0.01192531  0.03404136  0.40485490 -0.3175998  1.00000000 -0.08953172</span></span>
-<span><span class="co">#&gt; k6  0.40365755  0.38467926  0.07792155 -0.3466470 -0.08953172  1.00000000</span></span></code></pre></div>
+<span><span class="co">#&gt;             x1          x2          x3         x4          x5          x6</span></span>
+<span><span class="co">#&gt; x1  1.00000000  0.23375492  0.28118697  0.1442114 -0.01192531  0.40365755</span></span>
+<span><span class="co">#&gt; x2  0.23375492  1.00000000 -0.13315127 -0.1448709  0.03404136  0.38467926</span></span>
+<span><span class="co">#&gt; x3  0.28118697 -0.13315127  1.00000000 -0.7612102  0.40485490  0.07792155</span></span>
+<span><span class="co">#&gt; x4  0.14421140 -0.14487091 -0.76121019  1.0000000 -0.31759978 -0.34664697</span></span>
+<span><span class="co">#&gt; x5 -0.01192531  0.03404136  0.40485490 -0.3175998  1.00000000 -0.08953172</span></span>
+<span><span class="co">#&gt; x6  0.40365755  0.38467926  0.07792155 -0.3466470 -0.08953172  1.00000000</span></span></code></pre></div>
 <p>Additional stuff for Prototype Classification Model:</p>
 <ul>
 <li><p><code>w</code> a vector of attention weights for each k</p></li>
@@ -182,7 +182,7 @@
 <span><span class="co">#&gt; 0.082 0.116 0.178 0.282 0.063 0.279</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Marginal Probabilities, or `colMeans(.$data)`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span></code></pre></div>
 <p><code><a href="reference/consolidate.html">consolidate()</a></code> the previous output into a single data frame for easier visualization.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
@@ -198,12 +198,12 @@
 <span><span class="co">#&gt;  $ dist1: num  0.655 0 0.477 0.457 0.145 ...</span></span>
 <span><span class="co">#&gt;  $ dist2: num  0.345 1 0.523 0.543 0.855 ...</span></span>
 <span><span class="co">#&gt;  $ dist3: num  0.543 0.677 0.365 0.576 0.822 ...</span></span>
-<span><span class="co">#&gt;  $ k1   : int  0 1 0 1 0 1 0 1 0 1 ...</span></span>
-<span><span class="co">#&gt;  $ k2   : int  0 1 0 1 1 1 0 1 1 1 ...</span></span>
-<span><span class="co">#&gt;  $ k3   : int  0 1 1 0 1 0 0 0 1 0 ...</span></span>
-<span><span class="co">#&gt;  $ k4   : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
-<span><span class="co">#&gt;  $ k5   : int  1 1 1 1 0 0 1 1 1 1 ...</span></span>
-<span><span class="co">#&gt;  $ k6   : int  0 1 0 0 1 0 0 1 0 1 ...</span></span></code></pre></div>
+<span><span class="co">#&gt;  $ x1   : int  0 1 0 1 0 1 0 1 0 1 ...</span></span>
+<span><span class="co">#&gt;  $ x2   : int  0 1 0 1 1 1 0 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x3   : int  0 1 1 0 1 0 0 0 1 0 ...</span></span>
+<span><span class="co">#&gt;  $ x4   : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x5   : int  1 1 1 1 0 0 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x6   : int  0 1 0 0 1 0 0 1 0 1 ...</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="compositional-effects">Compositional Effects<a class="anchor" aria-label="anchor" href="#compositional-effects"></a>
@@ -239,15 +239,15 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`</span></span>
 <span><span class="co">#&gt; $`1`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.523 0.780 0.328 0.933 0.617 0.626 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`2`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.130 0.430 0.058 0.947 0.482 0.038 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`3`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.377 0.362 0.690 0.705 0.786 0.088</span></span></code></pre></div>
 <p>The point is to compare different probabilities across different parameters values (i.e., compositional effects).</p>
 <p>For example:</p>
@@ -267,15 +267,15 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`</span></span>
 <span><span class="co">#&gt; $`1`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.555 0.847 0.335 0.920 0.683 0.569 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`2`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.094 0.406 0.073 0.944 0.403 0.098 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`3`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.429 0.302 0.659 0.739 0.857 0.096</span></span>
 <span></span>
 <span><span class="va">w2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"double"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span><span class="op">)</span> <span class="co"># all attention on dimension 2</span></span>
@@ -292,15 +292,15 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`</span></span>
 <span><span class="co">#&gt; $`1`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.386 1.000 0.242 0.881 0.597 0.366 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`2`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.252 0.000 0.317 0.921 0.577 0.162 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`3`</span></span>
-<span><span class="co">#&gt;    k1    k2    k3    k4    k5    k6 </span></span>
+<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.250 0.000 0.311 0.922 0.576 0.161</span></span></code></pre></div>
 <hr>
 <p>To do:</p>
