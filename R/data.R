@@ -20,7 +20,7 @@ make_binary_data <- function(marginals, rho, obs = 1e3) {
   stopifnot(isSymmetric.matrix(rho))
 
   if (is.null(names(marginals))) {
-    names(marginals) <- paste0("k", 1:length(marginals))
+    names(marginals) <- paste0("x", 1:length(marginals))
   }
 
   mu <- stats::qnorm(marginals)

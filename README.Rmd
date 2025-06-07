@@ -45,7 +45,7 @@ K <- 6 # 1st step
 marginals <- rbeta(K, 2, 2) # 2nd step
 rho <- rlkjcorr(1, K, eta = 1) # 3rd step
 
-nms <- paste0("k", 1:K)
+nms <- paste0("x", 1:K)
 names(marginals) <- nms
 dimnames(rho) <- list(nms, nms)
 ```
