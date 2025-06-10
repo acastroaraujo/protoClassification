@@ -69,13 +69,37 @@
 <span class="r-in"><span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">4</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">make_binary_data</span><span class="op">(</span><span class="va">marginals</span>, <span class="va">rho</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   x1 x2 x3 x4 x5 x6 x7 x8</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  1  1  0  0  0  1  0  0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0  0  0  0  1  1  0  1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0  1  0  0  0  1  0  1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0  0  0  1  1  0  0  0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0  0  0  1  1  0  0  0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  1  0  0  0  1  0  0  0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Data</span> ──</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 obs. of  8 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x1: int  1 0 0 0 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x2: int  1 0 1 0 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x3: int  0 0 0 0 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x4: int  0 0 0 1 1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x5: int  0 1 0 1 1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x6: int  1 1 1 0 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x7: int  0 0 0 0 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ x8: int  0 1 1 0 0 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Parameters</span> ──</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── Marginal Probabilities: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   x1   x2   x3   x4   x5   x6   x7   x8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.12 0.47 0.03 0.40 0.56 0.70 0.07 0.34 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── Correlation Matrix: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       x1    x2    x3    x4    x5    x6    x7    x8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1  1.00 -0.11  0.20  0.07  0.33  0.32  0.07 -0.19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2 -0.11  1.00  0.63 -0.25 -0.59  0.78  0.09  0.66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x3  0.20  0.63  1.00 -0.19 -0.09  0.57  0.54  0.42</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x4  0.07 -0.25 -0.19  1.00  0.35 -0.56 -0.02 -0.54</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x5  0.33 -0.59 -0.09  0.35  1.00 -0.45  0.12 -0.52</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x6  0.32  0.78  0.57 -0.56 -0.45  1.00 -0.14  0.58</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x7  0.07  0.09  0.54 -0.02  0.12 -0.14  1.00  0.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x8 -0.19  0.66  0.42 -0.54 -0.52  0.58  0.22  1.00</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    x1    x2    x3    x4    x5    x6    x7    x8 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 0.109 0.465 0.031 0.388 0.541 0.736 0.056 0.355 </span>

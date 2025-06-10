@@ -69,49 +69,46 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fl">6</span> <span class="co"># 1st step</span></span>
 <span><span class="va">marginals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">rbeta</a></span><span class="op">(</span><span class="va">K</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span> <span class="co"># 2nd step</span></span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># 3rd step</span></span>
-<span></span>
-<span><span class="va">nms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">marginals</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">nms</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">rho</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">nms</span>, <span class="va">nms</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># 3rd step</span></span></code></pre></div>
 <p><strong>Generate data.</strong></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">marginals</span>, <span class="va">rho</span>, obs <span class="op">=</span> <span class="fl">1e3</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim_data</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    x1 x2 x3 x4 x5 x6</span></span>
-<span><span class="co">#&gt; 1   0  0  0  1  1  0</span></span>
-<span><span class="co">#&gt; 2   1  1  1  1  1  1</span></span>
-<span><span class="co">#&gt; 3   0  0  1  1  1  0</span></span>
-<span><span class="co">#&gt; 4   1  1  0  1  1  0</span></span>
-<span><span class="co">#&gt; 5   0  1  1  1  0  1</span></span>
-<span><span class="co">#&gt; 6   1  1  0  1  0  0</span></span>
-<span><span class="co">#&gt; 7   0  0  0  1  1  0</span></span>
-<span><span class="co">#&gt; 8   1  1  0  1  1  1</span></span>
-<span><span class="co">#&gt; 9   0  1  1  1  1  0</span></span>
-<span><span class="co">#&gt; 10  1  1  0  1  1  1</span></span></code></pre></div>
-<p>The parameters are stored as the <code>params</code> attribute in the output.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="st">"params"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $marginals</span></span>
-<span><span class="co">#&gt;        x1        x2        x3        x4        x5        x6 </span></span>
-<span><span class="co">#&gt; 0.3275025 0.5516990 0.2743131 0.8814780 0.5923401 0.2780523 </span></span>
+<span><span class="va">sim_data</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $rho</span></span>
-<span><span class="co">#&gt;             x1           x2          x3         x4           x5          x6</span></span>
-<span><span class="co">#&gt; x1  1.00000000  0.223148504  0.28872627  0.1545050 -0.017382124  0.35530360</span></span>
-<span><span class="co">#&gt; x2  0.22314850  1.000000000 -0.08484711 -0.2055278 -0.009983913  0.37405720</span></span>
-<span><span class="co">#&gt; x3  0.28872627 -0.084847106  1.00000000 -0.7472276  0.341004033  0.08352309</span></span>
-<span><span class="co">#&gt; x4  0.15450496 -0.205527752 -0.74722765  1.0000000 -0.200619041 -0.33781820</span></span>
-<span><span class="co">#&gt; x5 -0.01738212 -0.009983913  0.34100403 -0.2006190  1.000000000 -0.03222531</span></span>
-<span><span class="co">#&gt; x6  0.35530360  0.374057201  0.08352309 -0.3378182 -0.032225308  1.00000000</span></span></code></pre></div>
-<p>Verify that the column means <em>roughly</em> correspond to the marginal probabilities.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; ── Data ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; 1000 obs. of  6 variables:</span></span>
+<span><span class="co">#&gt;  $ x1: int  0 1 0 1 0 1 0 1 0 1 ...</span></span>
+<span><span class="co">#&gt;  $ x2: int  0 1 0 1 1 1 0 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x3: int  0 1 1 0 1 0 0 0 1 0 ...</span></span>
+<span><span class="co">#&gt;  $ x4: int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x5: int  1 1 1 1 0 0 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x6: int  0 1 0 0 1 0 0 1 0 1 ...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Parameters ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginal Probabilities:</span></span>
+<span><span class="co">#&gt;   x1   x2   x3   x4   x5   x6 </span></span>
+<span><span class="co">#&gt; 0.33 0.55 0.27 0.88 0.59 0.28</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Correlation Matrix:</span></span>
+<span><span class="co">#&gt;       x1    x2    x3    x4    x5    x6</span></span>
+<span><span class="co">#&gt; x1  1.00  0.22  0.29  0.15 -0.02  0.36</span></span>
+<span><span class="co">#&gt; x2  0.22  1.00 -0.08 -0.21 -0.01  0.37</span></span>
+<span><span class="co">#&gt; x3  0.29 -0.08  1.00 -0.75  0.34  0.08</span></span>
+<span><span class="co">#&gt; x4  0.15 -0.21 -0.75  1.00 -0.20 -0.34</span></span>
+<span><span class="co">#&gt; x5 -0.02 -0.01  0.34 -0.20  1.00 -0.03</span></span>
+<span><span class="co">#&gt; x6  0.36  0.37  0.08 -0.34 -0.03  1.00</span></span></code></pre></div>
+<p><em>Note. The parameters are stored as the <code>params</code> attribute in the output.</em></p>
+<p>We can verify that the column means <em>roughly</em> correspond to the marginal probabilities.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
 <span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span></code></pre></div>
 <p>In order to verify that the data follows the correlation structure in <code>rho</code> you would have to calculate a “<a href="https://en.wikipedia.org/wiki/Polychoric_correlation" class="external-link">tetrachoric correlation</a>.”</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">psych</span><span class="fu">::</span><span class="fu">tetrachoric</span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span><span class="op">$</span><span class="va">rho</span></span>
 <span><span class="co">#&gt;             x1          x2          x3         x4          x5          x6</span></span>
 <span><span class="co">#&gt; x1  1.00000000  0.23375492  0.28118697  0.1442114 -0.01192531  0.40365755</span></span>
@@ -126,13 +123,13 @@
 <li><p><code>P</code> a list of prototypes, one per category.</p></li>
 <li><p><code>g</code> (gamma) sensitivity parameter.</p></li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span></span>
 <span><span class="va">w</span> <span class="op">&lt;-</span> <span class="va">w</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span>
 <span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></code></pre></div>
 <p>Calculate distance and similarity for one prototype at a time:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculateDistSim.html">calculateDistSim</a></span><span class="op">(</span></span>
 <span>  P <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span><span class="op">)</span>, </span>
 <span>  w <span class="op">=</span> <span class="va">w</span>, </span>
@@ -145,7 +142,7 @@
 <span><span class="co">#&gt;  $ distance  : num  0.655 0 0.477 0.457 0.145 ...</span></span>
 <span><span class="co">#&gt;  $ similarity: num  0.00143 1 0.00846 0.01035 0.23423 ...</span></span></code></pre></div>
 <p>Calculate distance, similarity, and probabilities for multiple prototypes at the same time:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prototypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  P1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span><span class="op">)</span>,</span>
 <span>  P2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">K</span><span class="op">)</span>,</span>
@@ -157,35 +154,36 @@
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">prototypes</span>, <span class="va">w</span>, <span class="va">sim_data</span>, g <span class="op">=</span> <span class="va">g</span>, r <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">out</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Overview ──</span></span>
+<span><span class="co">#&gt; ── Output: ──</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Output:</span></span>
-<span><span class="co">#&gt;  $ distance     :1000 obs. of  3 variables:</span></span>
-<span><span class="co">#&gt;  $ similarity   :1000 obs. of  3 variables:</span></span>
-<span><span class="co">#&gt;  $ probabilities:1000 obs. of  3 variables:</span></span>
-<span><span class="co">#&gt;  $ data         :1000 obs. of  6 variables:</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Prototypes:</span></span>
+<span><span class="co">#&gt;  $ distance      1000 obs. of  3 variables</span></span>
+<span><span class="co">#&gt;  $ similarity    1000 obs. of  3 variables</span></span>
+<span><span class="co">#&gt;  $ probabilities 1000 obs. of  3 variables</span></span>
+<span><span class="co">#&gt;  $ data          1000 obs. of  6 variables</span></span>
+<span><span class="co">#&gt; ── Prototypes ──</span></span>
 <span><span class="co">#&gt;  $ P1: num [1:6] 1 1 1 1 1 1</span></span>
 <span><span class="co">#&gt;  $ P2: num [1:6] 0 0 0 0 0 0</span></span>
 <span><span class="co">#&gt;  $ P3: int [1:6] 1 0 1 0 1 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Distance:</span></span>
+<span><span class="co">#&gt; ── Distance ──</span></span>
 <span><span class="co">#&gt; Manhattan (r = 1)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sensitivity:</span></span>
+<span><span class="co">#&gt; ── Sensitivity ──</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; g1 g2 g3 </span></span>
 <span><span class="co">#&gt; 10 10 10</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Attention Weights:</span></span>
+<span><span class="co">#&gt; ── Attention Weights ──</span></span>
 <span><span class="co">#&gt;    w1    w2    w3    w4    w5    w6 </span></span>
 <span><span class="co">#&gt; 0.082 0.116 0.178 0.282 0.063 0.279</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Marginal Probabilities, or `colMeans(.$data)`</span></span>
+<span><span class="co">#&gt; ── Marginal Probabilities ──</span></span>
+<span><span class="co">#&gt; ── `colMeans(.$data)`:</span></span>
 <span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span></code></pre></div>
+<span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── `colMeans(.$probabilities)`:</span></span>
+<span><span class="co">#&gt;        C1        C2        C3 </span></span>
+<span><span class="co">#&gt; 0.3883449 0.4360664 0.1755887</span></span></code></pre></div>
 <p><code><a href="reference/consolidate.html">consolidate()</a></code> the previous output into a single data frame for easier visualization.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/consolidate.html">consolidate</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 'data.frame':    1000 obs. of  15 variables:</span></span>
@@ -206,13 +204,14 @@
 <span><span class="co">#&gt;  $ x6   : int  0 1 0 0 1 0 0 1 0 1 ...</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="compositional-effects">Compositional Effects<a class="anchor" aria-label="anchor" href="#compositional-effects"></a>
+<h2 id="conditional-probabilities">Conditional Probabilities<a class="anchor" aria-label="anchor" href="#conditional-probabilities"></a>
 </h2>
+<p><strong>YOU ARE HERE</strong></p>
 <p>The more relevant piece of information coming from the <code><a href="reference/compute.html">compute()</a></code> function is the <code>.$probabilities</code> object.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span><span class="op">$</span><span class="va">probabilities</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            P1           P2          P3</span></span>
+<span><span class="co">#&gt;            C1           C2          C3</span></span>
 <span><span class="co">#&gt; 1  0.03793516 8.451456e-01 0.116919205</span></span>
 <span><span class="co">#&gt; 2  0.99880696 4.534577e-05 0.001147689</span></span>
 <span><span class="co">#&gt; 3  0.21204400 1.344193e-01 0.653536676</span></span>
@@ -223,37 +222,191 @@
 <span><span class="co">#&gt; 8  0.99726291 1.591178e-03 0.001145915</span></span>
 <span><span class="co">#&gt; 9  0.73097337 4.589391e-02 0.223132720</span></span>
 <span><span class="co">#&gt; 10 0.99726291 1.591178e-03 0.001145915</span></span></code></pre></div>
-<p>With this you can classify each row in the simulated dataset and then get conditional probabilities for each <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math> feature.</p>
-<p>There are two functions to calculate the compositional effects of one of these simulations.</p>
-<ul>
-<li><p><code><a href="reference/conditionalProbsWhichMax.html">conditionalProbsWhichMax()</a></code></p></li>
-<li><p><code><a href="reference/conditionalProbsSample.html">conditionalProbsSample()</a></code></p></li>
-</ul>
-<p>Alternatively, it’s easier to use the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> function.</p>
+<p>With this you can classify each row in the simulated dataset and then get posterior conditional probabilities.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo>=</mo><mi>x</mi><mo>∣</mo><mi>C</mi><mo>=</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\Pr(X_k = x \mid C = c)
+</annotation></semantics></math></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/conditionalProbsSample.html">conditionalProbsSample</a></span><span class="op">(</span><span class="va">out</span>, type <span class="op">=</span> <span class="st">"features"</span>, s <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $C1</span></span>
+<span><span class="co">#&gt;             x1        x2        x3        x4        x5        x6</span></span>
+<span><span class="co">#&gt; [1,] 0.5250660 0.7783641 0.3350923 0.9419525 0.6279683 0.6332454</span></span>
+<span><span class="co">#&gt; [2,] 0.5219638 0.7700258 0.3385013 0.9431525 0.6072351 0.6253230</span></span>
+<span><span class="co">#&gt; [3,] 0.5248042 0.7624021 0.3394256 0.9399478 0.6240209 0.6266319</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $C2</span></span>
+<span><span class="co">#&gt;             x1        x2         x3        x4        x5         x6</span></span>
+<span><span class="co">#&gt; [1,] 0.1360544 0.4126984 0.05668934 0.9523810 0.4739229 0.03628118</span></span>
+<span><span class="co">#&gt; [2,] 0.1270208 0.4364896 0.06004619 0.9445727 0.4942263 0.03464203</span></span>
+<span><span class="co">#&gt; [3,] 0.1293303 0.4411085 0.04618938 0.9584296 0.4618938 0.03695150</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $C3</span></span>
+<span><span class="co">#&gt;             x1        x2        x3        x4        x5        x6</span></span>
+<span><span class="co">#&gt; [1,] 0.3722222 0.4277778 0.6777778 0.6777778 0.7833333 0.1055556</span></span>
+<span><span class="co">#&gt; [2,] 0.3833333 0.3722222 0.6500000 0.6944444 0.7722222 0.1000000</span></span>
+<span><span class="co">#&gt; [3,] 0.3750000 0.3858696 0.6739130 0.6739130 0.8097826 0.1032609</span></span></code></pre></div>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>C</mi><mo>=</mo><mi>c</mi><mo>∣</mo><msub><mi>X</mi><mi>k</mi></msub><mo>=</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\Pr(C = c \mid X_k = x)
+</annotation></semantics></math></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/conditionalProbsSample.html">conditionalProbsSample</a></span><span class="op">(</span><span class="va">out</span>, type <span class="op">=</span> <span class="st">"categories"</span>, s <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $x1</span></span>
+<span><span class="co">#&gt; , , x1=0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.2670623 0.5652819 0.1676558</span></span>
+<span><span class="co">#&gt; 2 0.2922849 0.5563798 0.1513353</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , x1=1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.6319018 0.1533742 0.2147239</span></span>
+<span><span class="co">#&gt; 2 0.6073620 0.1993865 0.1932515</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $x2</span></span>
+<span><span class="co">#&gt; , , x2=0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.1928251 0.5448430 0.2623318</span></span>
+<span><span class="co">#&gt; 2 0.1995516 0.5695067 0.2309417</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , x2=1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.5415162 0.3393502 0.1191336</span></span>
+<span><span class="co">#&gt; 2 0.5523466 0.3357401 0.1119134</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $x3</span></span>
+<span><span class="co">#&gt; , , x3=0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2         C3</span></span>
+<span><span class="co">#&gt; 1 0.3539945 0.5592287 0.08677686</span></span>
+<span><span class="co">#&gt; 2 0.3553719 0.5730028 0.07162534</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , x3=1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1         C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.4708029 0.09124088 0.4379562</span></span>
+<span><span class="co">#&gt; 2 0.5000000 0.08759124 0.4124088</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $x4</span></span>
+<span><span class="co">#&gt; , , x4=0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.2475248 0.2475248 0.5049505</span></span>
+<span><span class="co">#&gt; 2 0.2970297 0.2178218 0.4851485</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , x4=1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.4015573 0.4516129 0.1468298</span></span>
+<span><span class="co">#&gt; 2 0.4060067 0.4649611 0.1290323</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $x5</span></span>
+<span><span class="co">#&gt; , , x5=0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2         C3</span></span>
+<span><span class="co">#&gt; 1 0.3640777 0.5364078 0.09951456</span></span>
+<span><span class="co">#&gt; 2 0.3859223 0.5436893 0.07038835</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , x5=1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.4013605 0.3571429 0.2414966</span></span>
+<span><span class="co">#&gt; 2 0.4013605 0.3673469 0.2312925</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $x6</span></span>
+<span><span class="co">#&gt; , , x6=0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1        C2        C3</span></span>
+<span><span class="co">#&gt; 1 0.2013793 0.5696552 0.2289655</span></span>
+<span><span class="co">#&gt; 2 0.2068966 0.5820690 0.2110345</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; , , x6=1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          C1         C2         C3</span></span>
+<span><span class="co">#&gt; 1 0.8727273 0.06545455 0.06181818</span></span>
+<span><span class="co">#&gt; 2 0.8909091 0.06545455 0.04363636</span></span></code></pre></div>
+<p>Instead of working directly with the posterior draws, you can average over them using the <code><a href="reference/conditionalProbs.html">conditionalProbs()</a></code> function:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/conditionalProbs.html">conditionalProbs</a></span><span class="op">(</span><span class="va">out</span>, type <span class="op">=</span> <span class="st">"features"</span>, s <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           x1        x2         x3        x4        x5         x6</span></span>
+<span><span class="co">#&gt; C1 0.5214711 0.7798585 0.32929595 0.9326957 0.6174720 0.62664146</span></span>
+<span><span class="co">#&gt; C2 0.1305170 0.4284553 0.05827153 0.9466424 0.4813426 0.03733254</span></span>
+<span><span class="co">#&gt; C3 0.3784600 0.3652807 0.68685163 0.7061498 0.7870929 0.08690270</span></span>
+<span><span class="fu"><a href="reference/conditionalProbs.html">conditionalProbs</a></span><span class="op">(</span><span class="va">out</span>, type <span class="op">=</span> <span class="st">"categories"</span>, s <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $`xk=0`</span></span>
+<span><span class="co">#&gt;           C1        C2         C3</span></span>
+<span><span class="co">#&gt; x1 0.2750198 0.5629080 0.16207221</span></span>
+<span><span class="co">#&gt; x2 0.1923393 0.5585277 0.24913303</span></span>
+<span><span class="co">#&gt; x3 0.3598990 0.5657576 0.07434343</span></span>
+<span><span class="co">#&gt; x4 0.2573597 0.2310231 0.51161716</span></span>
+<span><span class="co">#&gt; x5 0.3609304 0.5491667 0.08990291</span></span>
+<span><span class="co">#&gt; x6 0.2012644 0.5784782 0.22025747</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $`xk=1`</span></span>
+<span><span class="co">#&gt;           C1         C2         C3</span></span>
+<span><span class="co">#&gt; x1 0.6245297 0.17356851 0.20190184</span></span>
+<span><span class="co">#&gt; x2 0.5472503 0.33732852 0.11542118</span></span>
+<span><span class="co">#&gt; x3 0.4659611 0.09212895 0.44190998</span></span>
+<span><span class="co">#&gt; x4 0.4037449 0.45901001 0.13724509</span></span>
+<span><span class="co">#&gt; x5 0.4085998 0.35667800 0.23472222</span></span>
+<span><span class="co">#&gt; x6 0.8837939 0.06031515 0.05589091</span></span></code></pre></div>
+<p>Alternatively, it’s easier to use the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> function to extract all conditional and marginal probabilities.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Category Prevalence, or `colMeans(object$probabilities)`</span></span>
-<span><span class="co">#&gt;    P1    P2    P3 </span></span>
+<span><span class="co">#&gt; ── Categories ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginals:</span></span>
+<span><span class="co">#&gt;    C1    C2    C3 </span></span>
 <span><span class="co">#&gt; 0.388 0.436 0.176</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`</span></span>
-<span><span class="co">#&gt; $`1`</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.523 0.780 0.328 0.933 0.617 0.626 </span></span>
+<span><span class="co">#&gt; ── Conditionals:</span></span>
+<span><span class="co">#&gt; $`xk=0`</span></span>
+<span><span class="co">#&gt;       C1    C2    C3</span></span>
+<span><span class="co">#&gt; x1 0.275 0.563 0.163</span></span>
+<span><span class="co">#&gt; x2 0.193 0.558 0.249</span></span>
+<span><span class="co">#&gt; x3 0.359 0.566 0.075</span></span>
+<span><span class="co">#&gt; x4 0.255 0.232 0.513</span></span>
+<span><span class="co">#&gt; x5 0.361 0.550 0.090</span></span>
+<span><span class="co">#&gt; x6 0.200 0.579 0.221</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $`2`</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.130 0.430 0.058 0.947 0.482 0.038 </span></span>
+<span><span class="co">#&gt; $`xk=1`</span></span>
+<span><span class="co">#&gt;       C1    C2    C3</span></span>
+<span><span class="co">#&gt; x1 0.623 0.174 0.203</span></span>
+<span><span class="co">#&gt; x2 0.546 0.338 0.117</span></span>
+<span><span class="co">#&gt; x3 0.465 0.092 0.443</span></span>
+<span><span class="co">#&gt; x4 0.403 0.459 0.138</span></span>
+<span><span class="co">#&gt; x5 0.408 0.356 0.236</span></span>
+<span><span class="co">#&gt; x6 0.883 0.060 0.057</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $`3`</span></span>
+<span><span class="co">#&gt; ── Features ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginals:</span></span>
 <span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.377 0.362 0.690 0.705 0.786 0.088</span></span></code></pre></div>
+<span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Conditionals:</span></span>
+<span><span class="co">#&gt;       x1    x2    x3    x4    x5    x6</span></span>
+<span><span class="co">#&gt; C1 0.523 0.780 0.328 0.933 0.617 0.627</span></span>
+<span><span class="co">#&gt; C2 0.130 0.430 0.058 0.946 0.482 0.038</span></span>
+<span><span class="co">#&gt; C3 0.378 0.364 0.693 0.706 0.788 0.088</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="compositional-effects">Compositional Effects<a class="anchor" aria-label="anchor" href="#compositional-effects"></a>
+</h2>
+<p>YOU ARE HERE… EXPLAIN WHAT THEY ARE</p>
 <p>The point is to compare different probabilities across different parameters values (i.e., compositional effects).</p>
 <p>For example:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">w_unif</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/temperature.html">temperature</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">5</span><span class="op">)</span> <span class="co"># make weights more uniform</span></span>
 <span><span class="va">w_unif</span></span>
 <span><span class="co">#&gt; [1] 0.1484224 0.1587893 0.1730981 0.1898107 0.1404808 0.1893986</span></span>
@@ -261,22 +414,42 @@
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">prototypes</span>, <span class="va">w_unif</span>, <span class="va">sim_data</span>, <span class="va">g</span>, r <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Category Prevalence, or `colMeans(object$probabilities)`</span></span>
-<span><span class="co">#&gt;    P1    P2    P3 </span></span>
+<span><span class="co">#&gt; ── Categories ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginals:</span></span>
+<span><span class="co">#&gt;    C1    C2    C3 </span></span>
 <span><span class="co">#&gt; 0.376 0.449 0.175</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`</span></span>
-<span><span class="co">#&gt; $`1`</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.555 0.847 0.335 0.920 0.683 0.569 </span></span>
+<span><span class="co">#&gt; ── Conditionals:</span></span>
+<span><span class="co">#&gt; $`xk=0`</span></span>
+<span><span class="co">#&gt;       C1    C2    C3</span></span>
+<span><span class="co">#&gt; x1 0.248 0.603 0.148</span></span>
+<span><span class="co">#&gt; x2 0.129 0.597 0.274</span></span>
+<span><span class="co">#&gt; x3 0.344 0.573 0.082</span></span>
+<span><span class="co">#&gt; x4 0.299 0.248 0.452</span></span>
+<span><span class="co">#&gt; x5 0.289 0.650 0.061</span></span>
+<span><span class="co">#&gt; x6 0.223 0.558 0.218</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $`2`</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.094 0.406 0.073 0.944 0.403 0.098 </span></span>
+<span><span class="co">#&gt; $`xk=1`</span></span>
+<span><span class="co">#&gt;       C1    C2    C3</span></span>
+<span><span class="co">#&gt; x1 0.640 0.130 0.230</span></span>
+<span><span class="co">#&gt; x2 0.575 0.330 0.096</span></span>
+<span><span class="co">#&gt; x3 0.460 0.120 0.420</span></span>
+<span><span class="co">#&gt; x4 0.385 0.472 0.144</span></span>
+<span><span class="co">#&gt; x5 0.437 0.308 0.255</span></span>
+<span><span class="co">#&gt; x6 0.778 0.160 0.061</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $`3`</span></span>
+<span><span class="co">#&gt; ── Features ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginals:</span></span>
 <span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.429 0.302 0.659 0.739 0.857 0.096</span></span>
+<span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Conditionals:</span></span>
+<span><span class="co">#&gt;       x1    x2    x3    x4    x5    x6</span></span>
+<span><span class="co">#&gt; C1 0.555 0.847 0.335 0.920 0.683 0.570</span></span>
+<span><span class="co">#&gt; C2 0.094 0.406 0.073 0.944 0.403 0.099</span></span>
+<span><span class="co">#&gt; C3 0.429 0.304 0.658 0.739 0.859 0.095</span></span>
 <span></span>
 <span><span class="va">w2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"double"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span><span class="op">)</span> <span class="co"># all attention on dimension 2</span></span>
 <span><span class="va">w2</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
@@ -286,28 +459,49 @@
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">prototypes</span>, <span class="va">w2</span>, <span class="va">sim_data</span>, <span class="va">g</span>, r <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Category Prevalence, or `colMeans(object$probabilities)`</span></span>
-<span><span class="co">#&gt;    P1    P2    P3 </span></span>
+<span><span class="co">#&gt; ── Categories ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginals:</span></span>
+<span><span class="co">#&gt;    C1    C2    C3 </span></span>
 <span><span class="co">#&gt; 0.554 0.223 0.223</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Conditional Probabilities, or `lapply(conditionalProbsSample(object), colMeans)`</span></span>
-<span><span class="co">#&gt; $`1`</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.386 1.000 0.242 0.881 0.597 0.366 </span></span>
+<span><span class="co">#&gt; ── Conditionals:</span></span>
+<span><span class="co">#&gt; $`xk=0`</span></span>
+<span><span class="co">#&gt;       C1    C2    C3</span></span>
+<span><span class="co">#&gt; x1 0.504 0.249 0.247</span></span>
+<span><span class="co">#&gt; x2 0.000 0.501 0.499</span></span>
+<span><span class="co">#&gt; x3 0.578 0.211 0.210</span></span>
+<span><span class="co">#&gt; x4 0.653 0.173 0.174</span></span>
+<span><span class="co">#&gt; x5 0.541 0.230 0.229</span></span>
+<span><span class="co">#&gt; x6 0.484 0.259 0.257</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $`2`</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.252 0.000 0.317 0.921 0.577 0.162 </span></span>
+<span><span class="co">#&gt; $`xk=1`</span></span>
+<span><span class="co">#&gt;       C1    C2    C3</span></span>
+<span><span class="co">#&gt; x1 0.656 0.171 0.172</span></span>
+<span><span class="co">#&gt; x2 1.000 0.000 0.000</span></span>
+<span><span class="co">#&gt; x3 0.489 0.256 0.255</span></span>
+<span><span class="co">#&gt; x4 0.543 0.229 0.228</span></span>
+<span><span class="co">#&gt; x5 0.563 0.219 0.218</span></span>
+<span><span class="co">#&gt; x6 0.738 0.131 0.131</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $`3`</span></span>
+<span><span class="co">#&gt; ── Features ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginals:</span></span>
 <span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6 </span></span>
-<span><span class="co">#&gt; 0.250 0.000 0.311 0.922 0.576 0.161</span></span></code></pre></div>
+<span><span class="co">#&gt; 0.326 0.554 0.274 0.899 0.588 0.275</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Conditionals:</span></span>
+<span><span class="co">#&gt;       x1 x2    x3    x4    x5    x6</span></span>
+<span><span class="co">#&gt; C1 0.386  1 0.242 0.881 0.597 0.366</span></span>
+<span><span class="co">#&gt; C2 0.252  0 0.314 0.921 0.578 0.163</span></span>
+<span><span class="co">#&gt; C3 0.251  0 0.313 0.922 0.575 0.160</span></span></code></pre></div>
 <hr>
 <p>To do:</p>
 <ul>
 <li>Figure out when “r = 1” or “r = 2” matters. It seems that Manhattan distance is used when the underlying data is binary. Since I’m only using binary data in these simulations, it seems that this doesn’t matter, right?</li>
 <li>Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)</li>
 </ul>
+<p>Change P to C when necessary.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
