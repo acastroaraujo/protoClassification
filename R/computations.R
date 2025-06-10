@@ -60,10 +60,11 @@ compute <- function(prototypes, w, data, g, r = 1L) {
   out <- purrr::list_transpose(out)
   out <- purrr::map(out, as.data.frame)
   out$probabilities <- out$similarity / rowSums(out$similarity)
+  names(out$probabilities) <- gsub("P", "C", names(out$probabilities))
   out$data <- data
   structure(
     out,
-    class = c("prototype", class(out)),
+    class = c("prototypeComputation", class(out)),
     prototypes = prototypes,
     w = w,
     g = g,
@@ -73,22 +74,7 @@ compute <- function(prototypes, w, data, g, r = 1L) {
 
 #' @export
 #'
-summary.prototype <- function(object, s = 500, ...) {
-  conditional_p <- purrr::map(conditionalProbsSample(object, s), colMeans)
-  prevalence <- colMeans(object$probabilities)
-  cli::cli_h3("Category Prevalence, or {.code colMeans(object$probabilities)}")
-  print(round(prevalence, 3))
-  cli::cli_h3(
-    "Conditional Probabilities, or {.code lapply(conditionalProbsSample(object), colMeans)}"
-  )
-  print(purrr::map(conditional_p, round, 3))
-  output <- list(prevalence = prevalence, conditionalProbs = conditional_p)
-  invisible(output)
-}
-
-#' @export
-#'
-print.prototype <- function(x, ...) {
+print.prototypeComputation <- function(x, ...) {
   output <- utils::capture.output(utils::str(
     x,
     give.attr = FALSE,
@@ -96,23 +82,30 @@ print.prototype <- function(x, ...) {
     no.list = TRUE
   ))
 
+  output <- gsub(":.*?:", "", output)
+  output <- gsub(":$", "", output)
+
   r <- attr(x, "r")
   dist <- c("Manhattan", "Euclidean")
 
-  output <- gsub("'data\\.frame':\\s*", "", output)
-  cli::cli_h2("Overview")
-  cli::cli_h3("Output:")
-  cli::cat_line(paste(output, collapse = "\n"))
-  cli::cli_h3("Prototypes:")
+  cli::cli_h2("Output:")
+  cli::cat_line(paste(output, collapse = "\n"), "\n\n")
+  cli::cli_h2("Prototypes")
   utils::str(attr(x, "prototypes"), no.list = TRUE)
-  cli::cli_h3("Distance:")
-  cli::cli_text("{dist[[r]]} (r = {r})")
-  cli::cli_h3("Sensitivity:")
+  cat("\n")
+  cli::cli_h2("Distance")
+  cli::cli_text("{dist[[r]]} (r = {r})\n")
+  cli::cli_h2("Sensitivity")
   print(attr(x, "g"))
-  cli::cli_h3("Attention Weights:")
+  cat("\n")
+  cli::cli_h2("Attention Weights")
   print(round(attr(x, "w"), 3))
-  cli::cli_h3("Marginal Probabilities, or {.code colMeans(.$data)}")
+  cat("\n")
+  cli::cli_h2("Marginal Probabilities")
+  cli::cli_h3("{.code colMeans(.$data)}:")
   print(colMeans(x$data))
+  cli::cli_h3("{.code colMeans(.$probabilities)}:")
+  print(colMeans(x$probabilities))
   invisible(x)
 }
 
@@ -124,9 +117,11 @@ print.prototype <- function(x, ...) {
 #' @export
 #'
 consolidate <- function(x) {
-  stopifnot(inherits(x, "prototype"))
+  stopifnot(inherits(x, "prototypeComputation"))
   out <- purrr::imap(x, function(x, i) {
-    if (i == "data") return(x)
+    if (i == "data") {
+      return(x)
+    }
     nms <- switch(
       i,
       "distance" = paste0("dist", 1:ncol(x)),
@@ -140,42 +135,130 @@ consolidate <- function(x) {
   with(out, cbind(probabilities, similarity, distance, data))
 }
 
-#' Get Conditional Probabilities for K Features
-#'
-#' @param x a `prototype` object created by the `compute()` function.
-#'
-#' @returns a list of conditional probabilities; e.g., `Pr(K = 1 | C = 1)`
-#' @export
-#'
-conditionalProbsWhichMax <- function(x) {
-  stopifnot(inherits(x, "prototype"))
-  category <- apply(x$probabilities, 1, which.max)
-  category <- factor(category, levels = 1:ncol(x$probabilities))
-  purrr::map(split(x$data, category), colMeans)
-}
 
-#' Get Conditional Probabilities for K Features
+#' Get Posterior Draws of Conditional Probabilities
 #'
 #' @param x a `prototype` object created by the `compute()` function.
+#' @param type whether "features" `Pr(X|C)` or "categories" `Pr(C|X)`
 #' @param s number of draws to sample from the `.$probabilities` object created
 #'  by the `compute()` function
 #'
-#' @returns a list of conditional probabilities; e.g., `Pr(K = 1 | C = 1)`
+#' @returns a list of posterior draws
 #' @export
 #'
-conditionalProbsSample <- function(x, s = 500) {
-  stopifnot(inherits(x, "prototype"))
-  stopifnot(s > 1)
+conditionalProbsSample <- function(
+  x,
+  type = c("features", "categories"),
+  s = 500
+) {
+  stopifnot(inherits(x, "prototypeComputation"))
+  stopifnot(s >= 1)
+  type <- match.arg(type)
 
   categories <- apply(x$probabilities, 1, function(x) {
     sample(seq_along(x), size = s, replace = TRUE, prob = x)
   })
 
-  output <- apply(categories, 1, function(i) {
-    i <- factor(i, levels = 1:ncol(x$probabilities))
-    purrr::map(split(x$data, i), colMeans)
-  })
+  if (s == 1) {
+    dim(categories) <- c(s, nrow(x$probabilities))
+  }
 
-  output <- purrr::list_transpose(output)
-  purrr::map(output, \(x) do.call(rbind, x))
+  if (type == "features") {
+    output <- apply(categories, 1, function(i) {
+      i <- factor(i, levels = 1:ncol(x$probabilities))
+      purrr::map(split(x$data, i), colMeans)
+    })
+    output <- purrr::list_transpose(output)
+    output <- purrr::map(output, \(x) do.call(rbind, x))
+    names(output) <- paste0("C", seq_along(output))
+  }
+
+  if (type == "categories") {
+    output <- purrr::imap(x$data, function(x_vals, feature_name) {
+      n_cat <- ncol(x$probabilities)
+      x_nms <- paste0(feature_name, "=", 0:1)
+
+      index_0 <- which(x_vals == 0)
+      index_1 <- which(x_vals == 1)
+
+      result <- array(
+        data = 0L,
+        dim = c(s, n_cat, 2),
+        dimnames = list(1:s, paste0("C", 1:n_cat), x_nms)
+      )
+
+      out0 <- purrr::map(1:n_cat, \(cat) rowMeans(categories[, index_0] == cat))
+      out1 <- purrr::map(1:n_cat, \(cat) rowMeans(categories[, index_1] == cat))
+
+      result[,, x_nms[1]] <- do.call(cbind, out0)
+      result[,, x_nms[2]] <- do.call(cbind, out1)
+      result
+    })
+  }
+
+  return(output)
+}
+
+#' Get Conditional Probabilities
+#'
+#' @param x a `prototype` object created by the `compute()` function.
+#' @param type whether "features" `Pr(X|C)` or "categories" `Pr(C|X)`
+#' @param s number of draws to sample from the `.$probabilities` object created
+#'  by the `compute()` function
+#'
+#' @returns a list of conditional probabilities
+#' @export
+#'
+conditionalProbs <- function(x, type = c("features", "categories"), s = 500) {
+  type <- match.arg(type)
+  output <- conditionalProbsSample(x, type, s)
+  if (type == "categories") {
+    out1 <- purrr::map(output, function(m) {
+      data.frame(t(colMeans(m[,, 1])))
+    })
+
+    out2 <- purrr::map(output, function(x) {
+      data.frame(t(colMeans(x[,, 2])))
+    })
+
+    output <- list("xk=0" = do.call(rbind, out1), "xk=1" = do.call(rbind, out2))
+  }
+  if (type == "features") {
+    output <- purrr::map(output, colMeans)
+    output <- t(as.data.frame(output))
+  }
+  return(output)
+}
+
+#' @export
+#'
+summary.prototypeComputation <- function(object, s = 500, ...) {
+  categories <- conditionalProbs(object, "categories", s)
+  cat_marginals <- colMeans(object$probabilities)
+  features <- conditionalProbs(object, "features", s)
+  feature_marginals <- colMeans(object$data)
+
+  output <- list(
+    marginals = list(categories = cat_marginals, features = feature_marginals),
+    conditionals = list(categories = categories, features = features)
+  )
+
+  structure(output, class = c("summary.prototypeComputation", class(output)))
+}
+
+#' @export
+#'
+print.summary.prototypeComputation <- function(x, ...) {
+
+  cli::cli_h2("Categories")
+  cli::cli_h3("Marginals:")
+  print(round(x$marginals$categories, 3))
+  cli::cli_h3("Conditionals:")
+  print(purrr::map(x$conditionals$categories, round, 3))
+  cli::cli_h2("Features")
+  cli::cli_h3("Marginals:")
+  print(round(x$marginals$features, 3))
+  cli::cli_h3("Conditionals:")
+  print(round(x$conditionals$features, 3))
+
 }

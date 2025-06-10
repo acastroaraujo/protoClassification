@@ -30,5 +30,28 @@ make_binary_data <- function(marginals, rho, obs = 1e3) {
   out <- mvtnorm::rmvnorm(obs, mean = mu, sigma = S)
   out <- stats::pnorm(out) > 0.5
   out[] <- as.integer(out)
-  structure(as.data.frame(out), params = list(marginals = marginals, rho = rho))
+  out <- as.data.frame(out)
+  structure(
+    out,
+    class = c("prototypeData", class(out)),
+    params = list(marginals = marginals, rho = rho)
+  )
+}
+
+#' @export
+#'
+print.prototypeData <- function(x, digits = 2, ...) {
+  output <- utils::capture.output(utils::str(x, give.attr = FALSE))
+  output <- gsub(".*?\\t", "", output)
+  params <- attr(x, "params")
+
+  cli::cli_h2("Data")
+  cat(output, sep = "\n")
+  cli::cli_text("")
+  cli::cli_h2("Parameters")
+  cli::cli_h3("Marginal Probabilities:")
+  print(round(params$marginals, digits))
+  cli::cli_text("")
+  cli::cli_h3("Correlation Matrix:")
+  print(round(params$rho, digits))
 }

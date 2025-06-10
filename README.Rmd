@@ -45,9 +45,6 @@ K <- 6 # 1st step
 marginals <- rbeta(K, 2, 2) # 2nd step
 rho <- rlkjcorr(1, K, eta = 1) # 3rd step
 
-nms <- paste0("x", 1:K)
-names(marginals) <- nms
-dimnames(rho) <- list(nms, nms)
 ```
 
 **Generate data.**
@@ -55,16 +52,12 @@ dimnames(rho) <- list(nms, nms)
 ```{r}
 set.seed(1)
 sim_data <- make_binary_data(marginals, rho, obs = 1e3)
-head(sim_data, n = 10)
+sim_data
 ```
 
-The parameters are stored as the `params` attribute in the output.
+*Note. The parameters are stored as the `params` attribute in the output.*
 
-```{r}
-attr(sim_data, "params")
-```
-
-Verify that the column means *roughly* correspond to the marginal probabilities.
+We can verify that the column means *roughly* correspond to the marginal probabilities.
 
 ```{r}
 colMeans(sim_data)
@@ -126,7 +119,9 @@ d <- consolidate(out)
 str(d)
 ```
 
-## Compositional Effects
+## Conditional Probabilities
+
+**YOU ARE HERE**
 
 The more relevant piece of information coming from the `compute()` function is the `.$probabilities` object.
 
@@ -135,27 +130,48 @@ out$probabilities |>
   head(n = 10)
 ```
 
-With this you can classify each row in the simulated dataset and then get conditional probabilities for each $K$ feature.
+With this you can classify each row in the simulated dataset and then get posterior conditional probabilities.
 
-There are two functions to calculate the compositional effects of one of these simulations.
+$$
+\Pr(X_k = x \mid C = c)
+$$
 
--   `conditionalProbsWhichMax()`
+```{r}
+conditionalProbsSample(out, type = "features", s = 3)
+```
 
--   `conditionalProbsSample()`
+$$
+\Pr(C = c \mid X_k = x)
+$$
 
-Alternatively, it's easier to use the `summary()` function.
+```{r}
+conditionalProbsSample(out, type = "categories", s = 2)
+```
+
+Instead of working directly with the posterior draws, you can average over them using the `conditionalProbs()` function:
+
+```{r}
+conditionalProbs(out, type = "features", s = 300)
+conditionalProbs(out, type = "categories", s = 300)
+```
+
+Alternatively, it's easier to use the `summary()` function to extract all conditional and marginal probabilities.
 
 ```{r}
 summary(out)
 ```
+
+## Compositional Effects
+
+YOU ARE HERE... EXPLAIN WHAT THEY ARE
 
 The point is to compare different probabilities across different parameters values (i.e., compositional effects).
 
 For example:
 
 ```{r}
-set.seed(1)
 
+set.seed(1)
 w_unif <- temperature(w, 5) # make weights more uniform
 w_unif
 
@@ -176,3 +192,5 @@ To do:
 
 -   Figure out when "r = 1" or "r = 2" matters. It seems that Manhattan distance is used when the underlying data is binary. Since I'm only using binary data in these simulations, it seems that this doesn't matter, right?
 -   Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)
+
+Change P to C when necessary.
