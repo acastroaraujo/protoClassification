@@ -4,19 +4,20 @@
 \alias{compute}
 \title{Calculate distance, similarity, and membership probabilities}
 \usage{
-compute(prototypes, w, data, g, r = 1L)
+compute(data, prototypes, w, g, r = 1L)
 }
 \arguments{
+\item{data}{a data frame, as returned by the `make_data()` function}
+
 \item{prototypes}{a list of prototypes, i.e., K-sized vectors of binary
 features.}
 
 \item{w}{a K-sized vector of attention weights}
 
-\item{data}{a data frame, as returned by the `make_data()` function}
-
 \item{g}{a sensitivity parameter, a number larger than zero}
 
-\item{r}{the type of distance, 1 for Manhattan, 2 for Euclidean}
+\item{r}{the type of distance, 1 for Manhattan, 2 for Euclidean
+(irrelevant when working with binary data).}
 }
 \value{
 A `prototype` object. A list of probabilities, similarities,

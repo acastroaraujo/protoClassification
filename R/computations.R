@@ -20,18 +20,19 @@ calculateDistSim <- function(P, w, data, g, r = 1) {
 
 #' Calculate distance, similarity, and membership probabilities
 #'
+#' @param data a data frame, as returned by the `make_data()` function
 #' @param prototypes a list of prototypes, i.e., K-sized vectors of binary
 #'    features.
 #' @param w a K-sized vector of attention weights
-#' @param data a data frame, as returned by the `make_data()` function
 #' @param g a sensitivity parameter, a number larger than zero
 #' @param r the type of distance, 1 for Manhattan, 2 for Euclidean
+#'  (irrelevant when working with binary data).
 #'
 #' @returns A `prototype` object. A list of probabilities, similarities,
 #'  distances, and the data used to calculate them.
 #' @export
 #'
-compute <- function(prototypes, w, data, g, r = 1L) {
+compute <- function(data, prototypes, w, g, r = 1L) {
   stopifnot(r == 1L | r == 2L)
   stopifnot(all(g >= 0))
   stopifnot(is.list(prototypes))
@@ -104,9 +105,9 @@ print.prototypeComputation <- function(x, ...) {
   print(round(attr(x, "w"), 3))
   cli::cli_text("")
   cli::cli_h2("Marginal Probabilities")
-  cli::cli_h3("{.code colMeans(.$data)}:")
+  cli::cli_h3("{.code colMeans(.$data)}")
   print(colMeans(x$data))
-  cli::cli_h3("{.code colMeans(.$probabilities)}:")
+  cli::cli_h3("{.code colMeans(.$probabilities)}")
   print(colMeans(x$probabilities))
   invisible(x)
 }
@@ -157,8 +158,8 @@ conditionalProbsSample <- function(
   stopifnot(s >= 1)
   type <- match.arg(type)
 
-  categories <- apply(x$probabilities, 1, function(x) {
-    sample(seq_along(x), size = s, replace = TRUE, prob = x)
+  categories <- apply(x$probabilities, 1, function(p) {
+    sample(seq_along(p), size = s, replace = TRUE, prob = p)
   })
 
   if (s == 1) {
@@ -201,6 +202,7 @@ conditionalProbsSample <- function(
   return(output)
 }
 
+
 #' Get Conditional Probabilities
 #'
 #' @param x a `prototype` object created by the `compute()` function.
@@ -223,7 +225,7 @@ conditionalProbs <- function(x, type = c("features", "categories"), s = 500) {
       data.frame(t(colMeans(x[,, 2])))
     })
 
-    output <- list("xk=0" = do.call(rbind, out1), "xk=1" = do.call(rbind, out2))
+    output <- list("Xk=0" = do.call(rbind, out1), "Xk=1" = do.call(rbind, out2))
   }
   if (type == "features") {
     output <- purrr::map(output, colMeans)
@@ -241,8 +243,8 @@ summary.prototypeComputation <- function(object, s = 500, ...) {
   feature_marginals <- colMeans(object$data)
 
   output <- list(
-    marginals = list(categories = cat_marginals, features = feature_marginals),
-    conditionals = list(categories = categories, features = features)
+    marginal = list(categories = cat_marginals, features = feature_marginals),
+    conditional = list(categories = categories, features = features)
   )
 
   structure(output, class = c("summary.prototypeComputation", class(output)))
@@ -254,13 +256,13 @@ print.summary.prototypeComputation <- function(x, ...) {
 
   cli::cli_h2("Categories")
   cli::cli_h3("Marginals:")
-  print(round(x$marginals$categories, 3))
+  print(round(x$marginal$categories, 3))
   cli::cli_h3("Conditionals:")
-  print(purrr::map(x$conditionals$categories, round, 3))
+  print(purrr::map(x$conditional$categories, round, 3))
   cli::cli_h2("Features")
   cli::cli_h3("Marginals:")
-  print(round(x$marginals$features, 3))
+  print(round(x$marginal$features, 3))
   cli::cli_h3("Conditionals:")
-  print(round(x$conditionals$features, 3))
+  print(round(x$conditional$features, 3))
 
 }

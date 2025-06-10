@@ -138,7 +138,7 @@ prototypes <- list(
 
 g <- rep(10, 3)
 
-out <- compute(prototypes, w, sim_data, g = g, r = 1)
+out <- compute(sim_data, prototypes, w, g)
 out
 #> 
 #> ── Output ──
@@ -170,11 +170,11 @@ out
 #> 
 #> ── Marginal Probabilities ──
 #> 
-#> ── `colMeans(.$data)`:
+#> ── `colMeans(.$data)`
 #>    x1    x2    x3    x4    x5    x6 
 #> 0.326 0.554 0.274 0.899 0.588 0.275
 #> 
-#> ── `colMeans(.$probabilities)`:
+#> ── `colMeans(.$probabilities)`
 #>        C1        C2        C3 
 #> 0.3883449 0.4360664 0.1755887
 ```
@@ -203,174 +203,84 @@ str(d)
 #>  $ x6   : int  0 1 0 0 1 0 0 1 0 1 ...
 ```
 
-## Conditional Probabilities
+*Note. Since only binary data is implemented, there is no difference
+between Manhattan and Euclidean distance!*
 
-**YOU ARE HERE**
+## Marginal and Conditional Probabilities
 
-The more relevant piece of information coming from the `compute()`
-function is the `.$probabilities` object.
+So far, a single simulation requires the marginal probabilities for each
+element of $\mathbf{x}$ to be specified at the outset.
 
 ``` r
-out$probabilities |> 
-  head(n = 10)
-#>            C1           C2          C3
-#> 1  0.03793516 8.451456e-01 0.116919205
-#> 2  0.99880696 4.534577e-05 0.001147689
-#> 3  0.21204400 1.344193e-01 0.653536676
-#> 4  0.57832896 2.451337e-01 0.176537365
-#> 5  0.99802732 8.258837e-04 0.001146794
-#> 6  0.35850294 5.320625e-01 0.109434541
-#> 7  0.03793516 8.451456e-01 0.116919205
-#> 8  0.99726291 1.591178e-03 0.001145915
-#> 9  0.73097337 4.589391e-02 0.223132720
-#> 10 0.99726291 1.591178e-03 0.001145915
+colMeans(out$data) # cf. `marginals` argument in `make_binary_data()`
+#>    x1    x2    x3    x4    x5    x6 
+#> 0.326 0.554 0.274 0.899 0.588 0.275
 ```
 
-With this you can classify each row in the simulated dataset and then
-get posterior conditional probabilities.
+The more relevant piece of information we get from the `compute()`
+function is the `.$probabilities` object, which calculates the
+probability that any given individual in our simulated dataset will
+belong to each of the prototype categories.
 
-$$
-\Pr(X_k = x \mid C = c)
-$$
+This allows us to calculate the marginal probabilities for each
+category.
 
 ``` r
-conditionalProbsSample(out, type = "features", s = 3)
-#> $C1
-#>             x1        x2        x3        x4        x5        x6
-#> [1,] 0.5250660 0.7783641 0.3350923 0.9419525 0.6279683 0.6332454
-#> [2,] 0.5219638 0.7700258 0.3385013 0.9431525 0.6072351 0.6253230
-#> [3,] 0.5248042 0.7624021 0.3394256 0.9399478 0.6240209 0.6266319
-#> 
-#> $C2
-#>             x1        x2         x3        x4        x5         x6
-#> [1,] 0.1360544 0.4126984 0.05668934 0.9523810 0.4739229 0.03628118
-#> [2,] 0.1270208 0.4364896 0.06004619 0.9445727 0.4942263 0.03464203
-#> [3,] 0.1293303 0.4411085 0.04618938 0.9584296 0.4618938 0.03695150
-#> 
-#> $C3
-#>             x1        x2        x3        x4        x5        x6
-#> [1,] 0.3722222 0.4277778 0.6777778 0.6777778 0.7833333 0.1055556
-#> [2,] 0.3833333 0.3722222 0.6500000 0.6944444 0.7722222 0.1000000
-#> [3,] 0.3750000 0.3858696 0.6739130 0.6739130 0.8097826 0.1032609
+colMeans(out$probabilities)
+#>        C1        C2        C3 
+#> 0.3883449 0.4360664 0.1755887
 ```
 
+With some ingenuity, we can use this information to get *conditional
+probabilities* too.
+
 $$
-\Pr(C = c \mid X_k = x)
+\Pr(X_k = 1 \mid C = c)
 $$
 
 ``` r
-conditionalProbsSample(out, type = "categories", s = 2)
-#> $x1
-#> , , x1=0
-#> 
-#>          C1        C2        C3
-#> 1 0.2670623 0.5652819 0.1676558
-#> 2 0.2922849 0.5563798 0.1513353
-#> 
-#> , , x1=1
-#> 
-#>          C1        C2        C3
-#> 1 0.6319018 0.1533742 0.2147239
-#> 2 0.6073620 0.1993865 0.1932515
-#> 
-#> 
-#> $x2
-#> , , x2=0
-#> 
-#>          C1        C2        C3
-#> 1 0.1928251 0.5448430 0.2623318
-#> 2 0.1995516 0.5695067 0.2309417
-#> 
-#> , , x2=1
-#> 
-#>          C1        C2        C3
-#> 1 0.5415162 0.3393502 0.1191336
-#> 2 0.5523466 0.3357401 0.1119134
-#> 
-#> 
-#> $x3
-#> , , x3=0
-#> 
-#>          C1        C2         C3
-#> 1 0.3539945 0.5592287 0.08677686
-#> 2 0.3553719 0.5730028 0.07162534
-#> 
-#> , , x3=1
-#> 
-#>          C1         C2        C3
-#> 1 0.4708029 0.09124088 0.4379562
-#> 2 0.5000000 0.08759124 0.4124088
-#> 
-#> 
-#> $x4
-#> , , x4=0
-#> 
-#>          C1        C2        C3
-#> 1 0.2475248 0.2475248 0.5049505
-#> 2 0.2970297 0.2178218 0.4851485
-#> 
-#> , , x4=1
-#> 
-#>          C1        C2        C3
-#> 1 0.4015573 0.4516129 0.1468298
-#> 2 0.4060067 0.4649611 0.1290323
-#> 
-#> 
-#> $x5
-#> , , x5=0
-#> 
-#>          C1        C2         C3
-#> 1 0.3640777 0.5364078 0.09951456
-#> 2 0.3859223 0.5436893 0.07038835
-#> 
-#> , , x5=1
-#> 
-#>          C1        C2        C3
-#> 1 0.4013605 0.3571429 0.2414966
-#> 2 0.4013605 0.3673469 0.2312925
-#> 
-#> 
-#> $x6
-#> , , x6=0
-#> 
-#>          C1        C2        C3
-#> 1 0.2013793 0.5696552 0.2289655
-#> 2 0.2068966 0.5820690 0.2110345
-#> 
-#> , , x6=1
-#> 
-#>          C1         C2         C3
-#> 1 0.8727273 0.06545455 0.06181818
-#> 2 0.8909091 0.06545455 0.04363636
-```
-
-Instead of working directly with the posterior draws, you can average
-over them using the `conditionalProbs()` function:
-
-``` r
-conditionalProbs(out, type = "features", s = 300)
+conditionalProbs(out, "features")
 #>           x1        x2         x3        x4        x5         x6
-#> C1 0.5214711 0.7798585 0.32929595 0.9326957 0.6174720 0.62664146
-#> C2 0.1305170 0.4284553 0.05827153 0.9466424 0.4813426 0.03733254
-#> C3 0.3784600 0.3652807 0.68685163 0.7061498 0.7870929 0.08690270
-conditionalProbs(out, type = "categories", s = 300)
-#> $`xk=0`
+#> C1 0.5226571 0.7802353 0.32826487 0.9332301 0.6171392 0.62588499
+#> C2 0.1302299 0.4297247 0.05791891 0.9465871 0.4820181 0.03806980
+#> C3 0.3770770 0.3621551 0.69020964 0.7052639 0.7862111 0.08786438
+```
+
+$$
+\Pr(X_k = 0 \mid C = c)
+$$
+
+``` r
+1 - conditionalProbs(out, "features")
+#>           x1        x2        x3         x4        x5        x6
+#> C1 0.4769570 0.2200126 0.6714007 0.06717440 0.3829206 0.3734904
+#> C2 0.8703417 0.5706125 0.9425701 0.05316343 0.5189671 0.9620408
+#> C3 0.6227137 0.6362298 0.3103042 0.29413893 0.2117976 0.9130266
+```
+
+$$
+\Pr(C = c \mid X_k)
+$$
+
+``` r
+conditionalProbs(out, type = "categories")
+#> $`Xk=0`
 #>           C1        C2         C3
-#> x1 0.2750198 0.5629080 0.16207221
-#> x2 0.1923393 0.5585277 0.24913303
-#> x3 0.3598990 0.5657576 0.07434343
-#> x4 0.2573597 0.2310231 0.51161716
-#> x5 0.3609304 0.5491667 0.08990291
-#> x6 0.2012644 0.5784782 0.22025747
+#> x1 0.2743383 0.5632908 0.16237092
+#> x2 0.1926099 0.5577848 0.24960538
+#> x3 0.3591157 0.5664215 0.07446281
+#> x4 0.2566337 0.2286733 0.51469307
+#> x5 0.3608689 0.5489563 0.09017476
+#> x6 0.2001655 0.5788414 0.22099310
 #> 
-#> $`xk=1`
+#> $`Xk=1`
 #>           C1         C2         C3
-#> x1 0.6245297 0.17356851 0.20190184
-#> x2 0.5472503 0.33732852 0.11542118
-#> x3 0.4659611 0.09212895 0.44190998
-#> x4 0.4037449 0.45901001 0.13724509
-#> x5 0.4085998 0.35667800 0.23472222
-#> x6 0.8837939 0.06031515 0.05589091
+#> x1 0.6236135 0.17344785 0.20293865
+#> x2 0.5456643 0.33832130 0.11601444
+#> x3 0.4652701 0.09116788 0.44356204
+#> x4 0.4029833 0.45951724 0.13749944
+#> x5 0.4073537 0.35719728 0.23544898
+#> x6 0.8839345 0.06015273 0.05591273
 ```
 
 Alternatively, it’s easier to use the `summary()` function to extract
@@ -387,23 +297,23 @@ probs
 #> 0.388 0.436 0.176
 #> 
 #> ── Conditionals:
-#> $`xk=0`
+#> $`Xk=0`
 #>       C1    C2    C3
-#> x1 0.275 0.563 0.163
+#> x1 0.276 0.562 0.162
 #> x2 0.193 0.558 0.249
-#> x3 0.359 0.566 0.075
-#> x4 0.255 0.232 0.513
-#> x5 0.361 0.550 0.090
-#> x6 0.200 0.579 0.221
+#> x3 0.360 0.565 0.075
+#> x4 0.258 0.231 0.511
+#> x5 0.362 0.548 0.091
+#> x6 0.202 0.578 0.220
 #> 
-#> $`xk=1`
+#> $`Xk=1`
 #>       C1    C2    C3
-#> x1 0.623 0.174 0.203
-#> x2 0.546 0.338 0.117
-#> x3 0.465 0.092 0.443
-#> x4 0.403 0.459 0.138
-#> x5 0.408 0.356 0.236
-#> x6 0.883 0.060 0.057
+#> x1 0.624 0.173 0.202
+#> x2 0.548 0.337 0.116
+#> x3 0.467 0.092 0.441
+#> x4 0.404 0.458 0.137
+#> x5 0.409 0.357 0.234
+#> x6 0.884 0.060 0.056
 #> 
 #> ── Features ──
 #> 
@@ -413,132 +323,283 @@ probs
 #> 
 #> ── Conditionals:
 #>       x1    x2    x3    x4    x5    x6
-#> C1 0.523 0.780 0.328 0.933 0.617 0.627
-#> C2 0.130 0.430 0.058 0.946 0.482 0.038
-#> C3 0.378 0.364 0.693 0.706 0.788 0.088
+#> C1 0.523 0.779 0.329 0.933 0.618 0.625
+#> C2 0.129 0.429 0.057 0.946 0.480 0.038
+#> C3 0.378 0.364 0.691 0.705 0.788 0.088
 ```
 
 ## Compositional Effects
 
-YOU ARE HERE… EXPLAIN WHAT THEY ARE
+Our main goal is to compare different probabilities across different
+parameters values. In particular, we can measure the “compositional
+effects” that result from different parameter values by keeping track of
+these conditional probabilities: $\Pr(\mathbf{x} \mid C, \Omega)$, where
+$\Omega$ is a short-hand way of referring to all parameters in the
+prototype model.
 
-$$
-\Pr(\mathbf{x} \mid C_1)
-$$
+Here I provide a few examples.
 
-Bayes
+``` r
+set.seed(9)
+# Basic Workflow ----
 
-$$
-\Pr(x_1 \mid C_1) = \frac{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1)}{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1) + \Pr(C_1 \mid x_1 = 0) \Pr(x_1 = 0)}
-$$
+K <- 10 
+obs <- 1e3
 
-The point is to compare different probabilities across different
-parameters values (i.e., compositional effects).
+# Data ----
 
-For example:
+mu <- rbeta(K, 2, 2) 
+rho <- rlkjcorr(1, K, eta = 1)
+
+sim_data <- make_binary_data(mu, rho, obs)
+
+# Prototype Parameters ----
+
+w <- runif(K)
+w <- w / sum(w)
+
+g <- c(10, 10)
+
+prototypes <- list(
+  P1 = rep(1, K),
+  P2 = rep(0, K)
+)
+
+# Compute ----
+
+out <- compute(sim_data, prototypes, w, g)
+probs <- summary(out, s = 1e3)
+```
+
+**Changing** $\gamma$
+
+``` r
+# This should make the second category more inclusive
+new_out <- compute(sim_data, prototypes, w, g = c(10, 5))
+new_probs <- summary(new_out, s = 1e3)
+```
+
+This should increase the marginal probabilities of the second category.
+
+``` r
+probs$marginal$categories
+#>        C1        C2 
+#> 0.3467094 0.6532906
+new_probs$marginal$categories
+#>        C1        C2 
+#> 0.1272612 0.8727388
+```
+
+And these are the compositional effects:
+
+``` r
+probs$conditional$features
+#>           x1        x2        x3        x4        x5        x6        x7
+#> C1 0.5728644 0.5546241 0.4564499 0.5167535 0.8871769 0.3245671 0.8346980
+#> C2 0.1476666 0.1344176 0.4190103 0.4130322 0.5257202 0.1370018 0.8030352
+#>           x8        x9       x10
+#> C1 0.5830473 0.3673473 0.4692927
+#> C2 0.4483320 0.4632084 0.3647565
+new_probs$conditional$features
+#>           x1        x2        x3        x4        x5        x6        x7
+#> C1 0.6926339 0.7162739 0.4362536 0.5256324 0.9326090 0.3853025 0.8662932
+#> C2 0.2370709 0.2164392 0.4313787 0.4378470 0.6099313 0.1753121 0.8064060
+#>           x8        x9       x10
+#> C1 0.6368593 0.3008669 0.4785071
+#> C2 0.4743415 0.4487705 0.3897002
+
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+#>            x1         x2          x3          x4         x5         x6
+#> C1 0.11976955 0.16164978 -0.02019631 0.008878864 0.04543211 0.06073539
+#> C2 0.08940431 0.08202158  0.01236839 0.024814811 0.08421110 0.03831033
+#>             x7         x8          x9         x10
+#> C1 0.031595164 0.05381202 -0.06648039 0.009214365
+#> C2 0.003370833 0.02600956 -0.01443787 0.024943624
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+#>          x1       x2        x3       x4       x5       x6       x7       x8
+#> C1 1.209071 1.291458 0.9557535 1.017182 1.051210 1.187127 1.037852 1.092294
+#> C2 1.605447 1.610200 1.0295181 1.060080 1.160182 1.279634 1.004198 1.058014
+#>           x9      x10
+#> C1 0.8190258 1.019635
+#> C2 0.9688307 1.068384
+```
+
+**Changing the “attention weights”**
+
+1st, we can make the attention weights more selective, meaning that
+classification becomes more rule-like.
+
+``` r
+w2 <- temperature(w, temp = 1/4) # cf. "temperature sampling"
+barplot(w, names.arg = seq_along(w), main = "Original Weights")
+```
+
+<img src="man/figures/README-unnamed-chunk-20-1.png" width="100%" />
+
+``` r
+barplot(w2, names.arg = seq_along(w), main = "New Weights")
+```
+
+<img src="man/figures/README-unnamed-chunk-20-2.png" width="100%" />
 
 ``` r
 
-set.seed(1)
-w_unif <- temperature(w, 5) # make weights more uniform
-w_unif
-#> [1] 0.1484224 0.1587893 0.1730981 0.1898107 0.1404808 0.1893986
-
-out <- compute(prototypes, w_unif, sim_data, g, r = 1) 
-summary(out)
-#> 
-#> ── Categories ──
-#> 
-#> ── Marginals:
-#>    C1    C2    C3 
-#> 0.376 0.449 0.175
-#> 
-#> ── Conditionals:
-#> $`xk=0`
-#>       C1    C2    C3
-#> x1 0.248 0.603 0.148
-#> x2 0.129 0.597 0.274
-#> x3 0.344 0.573 0.082
-#> x4 0.299 0.248 0.452
-#> x5 0.289 0.650 0.061
-#> x6 0.223 0.558 0.218
-#> 
-#> $`xk=1`
-#>       C1    C2    C3
-#> x1 0.640 0.130 0.230
-#> x2 0.575 0.330 0.096
-#> x3 0.460 0.120 0.420
-#> x4 0.385 0.472 0.144
-#> x5 0.437 0.308 0.255
-#> x6 0.778 0.160 0.061
-#> 
-#> ── Features ──
-#> 
-#> ── Marginals:
-#>    x1    x2    x3    x4    x5    x6 
-#> 0.326 0.554 0.274 0.899 0.588 0.275
-#> 
-#> ── Conditionals:
-#>       x1    x2    x3    x4    x5    x6
-#> C1 0.555 0.847 0.335 0.920 0.683 0.570
-#> C2 0.094 0.406 0.073 0.944 0.403 0.099
-#> C3 0.429 0.304 0.658 0.739 0.859 0.095
-
-w2 <- vector("double", length(w)) # all attention on dimension 2
-w2[[2]] <- 1
-w2
-#> [1] 0 1 0 0 0 0
-
-out <- compute(prototypes, w2, sim_data, g, r = 1)
-summary(out)
-#> 
-#> ── Categories ──
-#> 
-#> ── Marginals:
-#>    C1    C2    C3 
-#> 0.554 0.223 0.223
-#> 
-#> ── Conditionals:
-#> $`xk=0`
-#>       C1    C2    C3
-#> x1 0.504 0.249 0.247
-#> x2 0.000 0.501 0.499
-#> x3 0.578 0.211 0.210
-#> x4 0.653 0.173 0.174
-#> x5 0.541 0.230 0.229
-#> x6 0.484 0.259 0.257
-#> 
-#> $`xk=1`
-#>       C1    C2    C3
-#> x1 0.656 0.171 0.172
-#> x2 1.000 0.000 0.000
-#> x3 0.489 0.256 0.255
-#> x4 0.543 0.229 0.228
-#> x5 0.563 0.219 0.218
-#> x6 0.738 0.131 0.131
-#> 
-#> ── Features ──
-#> 
-#> ── Marginals:
-#>    x1    x2    x3    x4    x5    x6 
-#> 0.326 0.554 0.274 0.899 0.588 0.275
-#> 
-#> ── Conditionals:
-#>       x1 x2    x3    x4    x5    x6
-#> C1 0.386  1 0.242 0.881 0.597 0.366
-#> C2 0.252  0 0.314 0.921 0.578 0.163
-#> C3 0.251  0 0.313 0.922 0.575 0.160
+new_out <- compute(sim_data, prototypes, w = w2, g)
+new_probs <- summary(new_out, s = 1e3)
 ```
 
-------------------------------------------------------------------------
+The change in compositional effects should make it such that the new
+$p(x_k \mid c)$ are very high when $x_k$ is highly weighted.
 
-To do:
+``` r
+probs$conditional$features
+#>           x1        x2        x3        x4        x5        x6        x7
+#> C1 0.5728644 0.5546241 0.4564499 0.5167535 0.8871769 0.3245671 0.8346980
+#> C2 0.1476666 0.1344176 0.4190103 0.4130322 0.5257202 0.1370018 0.8030352
+#>           x8        x9       x10
+#> C1 0.5830473 0.3673473 0.4692927
+#> C2 0.4483320 0.4632084 0.3647565
+new_probs$conditional$features
+#>           x1         x2        x3        x4        x5        x6        x7
+#> C1 0.4860178 0.86941998 0.3071452 0.3394442 0.7586206 0.2901795 0.9158345
+#> C2 0.2139871 0.03015844 0.4849078 0.4954442 0.6053495 0.1646123 0.7708265
+#>           x8        x9       x10
+#> C1 0.5976563 0.2572416 0.3823109
+#> C2 0.4514389 0.5032435 0.4089434
 
-- Figure out when “r = 1” or “r = 2” matters. It seems that Manhattan
-  distance is used when the underlying data is binary. Since I’m only
-  using binary data in these simulations, it seems that this doesn’t
-  matter, right?
-- Figure out a best way to measure compositional effects (e.g., relative
-  risk ratio, difference in probabilities)
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+#>             x1         x2          x3          x4          x5          x6
+#> C1 -0.08684659  0.3147958 -0.14930471 -0.17730924 -0.12855632 -0.03438758
+#> C2  0.06632044 -0.1042591  0.06589754  0.08241196  0.07962923  0.02761056
+#>             x7          x8         x9         x10
+#> C1  0.08113647 0.014608959 -0.1101057 -0.08698181
+#> C2 -0.03220874 0.003106965  0.0400351  0.04418685
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+#>           x1        x2        x3        x4        x5        x6        x7
+#> C1 0.8483994 1.5675841 0.6729001 0.6568785 0.8550951 0.8940509 1.0972046
+#> C2 1.4491228 0.2243638 1.1572695 1.1995291 1.1514669 1.2015343 0.9598912
+#>          x8        x9       x10
+#> C1 1.025056 0.7002682 0.8146534
+#> C2 1.006930 1.0864300 1.1211407
+```
 
-Change P to C when necessary.
+At the extreme, when attention is placed exclusively on one feature.
+
+We should expect $p(x_k \mid c)$ to be 1.
+
+``` r
+w2 <- vector("double", length(w)) # all attention on dimension 3
+w2[[3]] <- 1
+barplot(w2, names.arg = seq_along(w2))
+```
+
+<img src="man/figures/README-unnamed-chunk-22-1.png" width="100%" />
+
+``` r
+
+new_out <- compute(sim_data, prototypes, w = w2, g)
+new_probs <- summary(new_out, s = 1e3)
+
+new_probs$conditional$features
+#>           x1        x2           x3        x4        x5        x6        x7
+#> C1 0.4212941 0.1689949 9.999469e-01 0.5231397 0.6712993 0.2152812 0.7314927
+#> C2 0.1989426 0.3644288 2.811951e-05 0.3926105 0.6355607 0.1918985 0.8767538
+#>           x8        x9       x10
+#> C1 0.4097318 0.3888849 0.3842530
+#> C2 0.5598537 0.4612716 0.4137375
+```
+
+Furthermore, marginal probability of $c_1$ should converge to the
+marginal probability of that feature with exclusive attention.
+
+``` r
+new_probs$marginal
+#> $categories
+#>        C1        C2 
+#> 0.4320062 0.5679938 
+#> 
+#> $features
+#>    x1    x2    x3    x4    x5    x6    x7    x8    x9   x10 
+#> 0.295 0.280 0.432 0.449 0.651 0.202 0.814 0.495 0.430 0.401
+```
+
+Compositional Effects:
+
+``` r
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+#>             x1         x2         x3           x4         x5          x6
+#> C1 -0.15157026 -0.3856292  0.5434970  0.006386203 -0.2158776 -0.10928584
+#> C2  0.05127596  0.2300112 -0.4189822 -0.020421740  0.1098404  0.05489672
+#>             x7         x8           x9         x10
+#> C1 -0.10320531 -0.1733156  0.021537656 -0.08503970
+#> C2  0.07371856  0.1115218 -0.001936813  0.04898097
+
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+#>           x1        x2           x3        x4        x5        x6        x7
+#> C1 0.7354169 0.3047017 2.190705e+00 1.0123583 0.7566691 0.6632874 0.8763561
+#> C2 1.3472414 2.7111691 6.710935e-05 0.9505565 1.2089333 1.4007008 1.0917999
+#>           x8        x9       x10
+#> C1 0.7027419 1.0586302 0.8187918
+#> C2 1.2487482 0.9958187 1.1342840
+```
+
+## Back to Correlations
+
+When all attention is placed on one feature, like in the previous
+example, we get to see something very intuitive about the compositions
+of all the other features.
+
+If we compare
+
+``` r
+xCondC1 <- new_probs$conditional$features["C1", ]
+x <- new_probs$marginal$features
+
+xCondC1 - x ## difference from baseline marginal probability
+#>          x1          x2          x3          x4          x5          x6 
+#>  0.12629413 -0.11100510  0.56794688  0.07413969  0.02029934  0.01328124 
+#>          x7          x8          x9         x10 
+#> -0.08250726 -0.08526823 -0.04111505 -0.01674697
+```
+
+Look at the original correlation matrix:
+
+``` r
+rho <- attr(new_out$data, "params")$rho
+round(rho["x3", ], 3)
+#>     x1     x2     x3     x4     x5     x6     x7     x8     x9    x10 
+#>  0.146 -0.422  1.000  0.269 -0.014 -0.060 -0.270 -0.204 -0.078  0.006
+```
+
+It seems like this difference from baseline is a linear function of the
+correlations between the features.
+
+``` r
+d <- data.frame(corr = rho["x3", ], diff = xCondC1 - x)
+plot(d)
+```
+
+<img src="man/figures/README-unnamed-chunk-27-1.png" width="100%" />
+
+This is certainly not the case when the attention weights are more
+spread out.
+
+``` r
+xCondC1 <- probs$conditional$features["C1", ]
+x <- probs$marginal$features
+rho <- attr(out$data, "params")$rho
+
+d <- data.frame(corr = rho["x3", ], diff = xCondC1 - x)
+plot(d)
+```
+
+<img src="man/figures/README-unnamed-chunk-28-1.png" width="100%" />
+
+The mission is to find a formula that explains $p(x\mid c)$ as a
+function of the simulation parameters!

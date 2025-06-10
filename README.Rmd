@@ -108,7 +108,7 @@ prototypes <- list(
 
 g <- rep(10, 3)
 
-out <- compute(prototypes, w, sim_data, g = g, r = 1)
+out <- compute(sim_data, prototypes, w, g)
 out
 ```
 
@@ -119,40 +119,48 @@ d <- consolidate(out)
 str(d)
 ```
 
-## Conditional Probabilities
+*Note. Since only binary data is implemented, there is no difference between Manhattan and Euclidean distance!*
 
-**YOU ARE HERE**
+## Marginal and Conditional Probabilities
 
-The more relevant piece of information coming from the `compute()` function is the `.$probabilities` object.
+So far, a single simulation requires the marginal probabilities for each element of $\mathbf{x}$ to be specified at the outset.
 
 ```{r}
-out$probabilities |> 
-  head(n = 10)
+colMeans(out$data) # cf. `marginals` argument in `make_binary_data()`
 ```
 
-With this you can classify each row in the simulated dataset and then get posterior conditional probabilities.
+The more relevant piece of information we get from the `compute()` function is the `.$probabilities` object, which calculates the probability that any given individual in our simulated dataset will belong to each of the prototype categories.
+
+This allows us to calculate the marginal probabilities for each category.
+
+```{r}
+colMeans(out$probabilities)
+```
+
+With some ingenuity, we can use this information to get *conditional probabilities* too.
 
 $$
-\Pr(X_k = x \mid C = c)
+\Pr(X_k = 1 \mid C = c)
 $$
 
 ```{r}
-conditionalProbsSample(out, type = "features", s = 3)
+conditionalProbs(out, "features")
 ```
 
 $$
-\Pr(C = c \mid X_k = x)
+\Pr(X_k = 0 \mid C = c)
 $$
 
 ```{r}
-conditionalProbsSample(out, type = "categories", s = 2)
+1 - conditionalProbs(out, "features")
 ```
 
-Instead of working directly with the posterior draws, you can average over them using the `conditionalProbs()` function:
+$$
+\Pr(C = c \mid X_k)
+$$
 
 ```{r}
-conditionalProbs(out, type = "features", s = 300)
-conditionalProbs(out, type = "categories", s = 300)
+conditionalProbs(out, type = "categories")
 ```
 
 Alternatively, it's easier to use the `summary()` function to extract all conditional and marginal probabilities.
@@ -164,44 +172,161 @@ probs
 
 ## Compositional Effects
 
-YOU ARE HERE... EXPLAIN WHAT THEY ARE
+Our main goal is to compare different probabilities across different parameters values. In particular, we can measure the "compositional effects" that result from different parameter values by keeping track of these conditional probabilities: $\Pr(\mathbf{x} \mid C, \Omega)$, where $\Omega$ is a short-hand way of referring to all parameters in the prototype model.
 
-$$
-\Pr(\mathbf{x} \mid C_1)
-$$
-
-Bayes
-
-$$
-\Pr(x_1 \mid C_1) = \frac{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1)}{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1) + \Pr(C_1 \mid x_1 = 0) \Pr(x_1 = 0)}
-$$
-
-The point is to compare different probabilities across different parameters values (i.e., compositional effects).
-
-For example:
+Here I provide a few examples.
 
 ```{r}
+set.seed(9)
+# Basic Workflow ----
 
-set.seed(1)
-w_unif <- temperature(w, 5) # make weights more uniform
-w_unif
+K <- 10 
+obs <- 1e3
 
-out <- compute(prototypes, w_unif, sim_data, g, r = 1) 
-summary(out)
+# Data ----
 
-w2 <- vector("double", length(w)) # all attention on dimension 2
-w2[[2]] <- 1
-w2
+mu <- rbeta(K, 2, 2) 
+rho <- rlkjcorr(1, K, eta = 1)
 
-out <- compute(prototypes, w2, sim_data, g, r = 1)
-summary(out)
+sim_data <- make_binary_data(mu, rho, obs)
+
+# Prototype Parameters ----
+
+w <- runif(K)
+w <- w / sum(w)
+
+g <- c(10, 10)
+
+prototypes <- list(
+  P1 = rep(1, K),
+  P2 = rep(0, K)
+)
+
+# Compute ----
+
+out <- compute(sim_data, prototypes, w, g)
+probs <- summary(out, s = 1e3)
 ```
 
-------------------------------------------------------------------------
+**Changing** $\gamma$
 
-To do:
+```{r}
+# This should make the second category more inclusive
+new_out <- compute(sim_data, prototypes, w, g = c(10, 5))
+new_probs <- summary(new_out, s = 1e3)
+```
 
--   Figure out when "r = 1" or "r = 2" matters. It seems that Manhattan distance is used when the underlying data is binary. Since I'm only using binary data in these simulations, it seems that this doesn't matter, right?
--   Figure out a best way to measure compositional effects (e.g., relative risk ratio, difference in probabilities)
+This should increase the marginal probabilities of the second category.
 
-Change P to C when necessary.
+```{r}
+probs$marginal$categories
+new_probs$marginal$categories
+```
+
+And these are the compositional effects:
+
+```{r}
+probs$conditional$features
+new_probs$conditional$features
+
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+```
+
+**Changing the "attention weights"**
+
+1st, we can make the attention weights more selective, meaning that classification becomes more rule-like.
+
+```{r}
+w2 <- temperature(w, temp = 1/4) # cf. "temperature sampling"
+barplot(w, names.arg = seq_along(w), main = "Original Weights")
+barplot(w2, names.arg = seq_along(w), main = "New Weights")
+
+new_out <- compute(sim_data, prototypes, w = w2, g)
+new_probs <- summary(new_out, s = 1e3)
+```
+
+The change in compositional effects should make it such that the new $p(x_k \mid c)$ are very high when $x_k$ is highly weighted.
+
+```{r}
+probs$conditional$features
+new_probs$conditional$features
+
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+```
+
+At the extreme, when attention is placed exclusively on one feature.
+
+We should expect $p(x_k \mid c)$ to be 1.
+
+```{r}
+w2 <- vector("double", length(w)) # all attention on dimension 3
+w2[[3]] <- 1
+barplot(w2, names.arg = seq_along(w2))
+
+new_out <- compute(sim_data, prototypes, w = w2, g)
+new_probs <- summary(new_out, s = 1e3)
+
+new_probs$conditional$features
+```
+
+Furthermore, marginal probability of $c_1$ should converge to the marginal probability of that feature with exclusive attention.
+
+```{r}
+new_probs$marginal
+```
+
+Compositional Effects:
+
+```{r}
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+```
+
+## Back to Correlations
+
+When all attention is placed on one feature, like in the previous example, we get to see something very intuitive about the compositions of all the other features.
+
+If we compare
+
+```{r}
+xCondC1 <- new_probs$conditional$features["C1", ]
+x <- new_probs$marginal$features
+
+xCondC1 - x ## difference from baseline marginal probability
+```
+
+Look at the original correlation matrix:
+
+```{r}
+rho <- attr(new_out$data, "params")$rho
+round(rho["x3", ], 3)
+```
+
+It seems like this difference from baseline is a linear function of the correlations between the features.
+
+```{r}
+d <- data.frame(corr = rho["x3", ], diff = xCondC1 - x)
+plot(d)
+```
+
+This is certainly not the case when the attention weights are more spread out.
+
+```{r}
+xCondC1 <- probs$conditional$features["C1", ]
+x <- probs$marginal$features
+rho <- attr(out$data, "params")$rho
+
+d <- data.frame(corr = rho["x3", ], diff = xCondC1 - x)
+plot(d)
+```
+
+The mission is to find a formula that explains $p(x\mid c)$ as a function of the simulation parameters!
