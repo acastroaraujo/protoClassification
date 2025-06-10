@@ -141,27 +141,35 @@ g <- rep(10, 3)
 out <- compute(prototypes, w, sim_data, g = g, r = 1)
 out
 #> 
-#> ── Output: ──
+#> ── Output ──
 #> 
 #>  $ distance      1000 obs. of  3 variables
 #>  $ similarity    1000 obs. of  3 variables
 #>  $ probabilities 1000 obs. of  3 variables
 #>  $ data          1000 obs. of  6 variables
+#> 
 #> ── Prototypes ──
+#> 
 #>  $ P1: num [1:6] 1 1 1 1 1 1
 #>  $ P2: num [1:6] 0 0 0 0 0 0
 #>  $ P3: int [1:6] 1 0 1 0 1 0
+#> 
 #> ── Distance ──
+#> 
 #> Manhattan (r = 1)
 #> 
 #> ── Sensitivity ──
 #> 
 #> g1 g2 g3 
 #> 10 10 10
+#> 
 #> ── Attention Weights ──
+#> 
 #>    w1    w2    w3    w4    w5    w6 
 #> 0.082 0.116 0.178 0.282 0.063 0.279
+#> 
 #> ── Marginal Probabilities ──
+#> 
 #> ── `colMeans(.$data)`:
 #>    x1    x2    x3    x4    x5    x6 
 #> 0.326 0.554 0.274 0.899 0.588 0.275
@@ -369,7 +377,8 @@ Alternatively, it’s easier to use the `summary()` function to extract
 all conditional and marginal probabilities.
 
 ``` r
-summary(out)
+probs <- summary(out)
+probs
 #> 
 #> ── Categories ──
 #> 
@@ -412,6 +421,16 @@ summary(out)
 ## Compositional Effects
 
 YOU ARE HERE… EXPLAIN WHAT THEY ARE
+
+$$
+\Pr(\mathbf{x} \mid C_1)
+$$
+
+Bayes
+
+$$
+\Pr(x_1 \mid C_1) = \frac{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1)}{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1) + \Pr(C_1 \mid x_1 = 0) \Pr(x_1 = 0)}
+$$
 
 The point is to compare different probabilities across different
 parameters values (i.e., compositional effects).

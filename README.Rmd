@@ -158,12 +158,23 @@ conditionalProbs(out, type = "categories", s = 300)
 Alternatively, it's easier to use the `summary()` function to extract all conditional and marginal probabilities.
 
 ```{r}
-summary(out)
+probs <- summary(out)
+probs
 ```
 
 ## Compositional Effects
 
 YOU ARE HERE... EXPLAIN WHAT THEY ARE
+
+$$
+\Pr(\mathbf{x} \mid C_1)
+$$
+
+Bayes
+
+$$
+\Pr(x_1 \mid C_1) = \frac{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1)}{\Pr(C_1 \mid x_1 = 1) \Pr(x_1 = 1) + \Pr(C_1 \mid x_1 = 0) \Pr(x_1 = 0)}
+$$
 
 The point is to compare different probabilities across different parameters values (i.e., compositional effects).
 
