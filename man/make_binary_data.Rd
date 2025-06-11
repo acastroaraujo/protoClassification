@@ -2,7 +2,7 @@
 % Please edit documentation in R/data.R
 \name{make_binary_data}
 \alias{make_binary_data}
-\title{Make Binary Data}
+\title{Make Correlated Binary Data}
 \usage{
 make_binary_data(marginals, rho, obs = 1000)
 }
@@ -17,7 +17,7 @@ make_binary_data(marginals, rho, obs = 1000)
 a matrix of simulated observations
 }
 \description{
-Make Binary Data
+Make Correlated Binary Data
 }
 \examples{
 K <- 8

@@ -4,14 +4,14 @@
 \alias{calculateDistSim}
 \title{Calculate distances and similarity from features to prototype}
 \usage{
-calculateDistSim(P, w, data, g, r = 1)
+calculateDistSim(data, P, w, g, r = 1)
 }
 \arguments{
+\item{data}{a data frame, as returned by the `make_data()` function}
+
 \item{P}{a K-sized vector of binary features (i.e., the prototype)}
 
 \item{w}{a K-sized vector of attention weights}
-
-\item{data}{a data frame, as returned by the `make_data()` function}
 
 \item{g}{a sensitivity parameter, a number larger than zero}
 

@@ -13,3 +13,24 @@ template:
 navbar:
   bg: light
 
+reference:
+- title: Data Simulation
+  contents:
+    - rlkjcorr
+    - transform_rho
+    - make_binary_data
+    - get_params
+    - bivariateCondProb
+
+- title: Prototype Model
+  contents:
+    - compute
+    - calculateDistSim
+    - consolidate
+    - conditionalProbsSample
+    - conditionalProbs
+
+- title: Misc.
+  contents:
+    - temperature
+    - compositionalEffect

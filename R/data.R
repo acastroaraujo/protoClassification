@@ -1,4 +1,4 @@
-#' Make Binary Data
+#' Make Correlated Binary Data
 #'
 #' @param marginals a K-sized vector of marginal probabilities
 #' @param rho a correlation matrix
@@ -26,8 +26,7 @@ make_binary_data <- function(marginals, rho, obs = 1e3) {
   mu <- stats::qnorm(marginals)
   names(mu) <- names(marginals)
   dimnames(rho) <- list(names(marginals), names(marginals))
-  S <- diag(length(mu)) %*% rho %*% diag(length(mu))
-  out <- mvtnorm::rmvnorm(obs, mean = mu, sigma = S)
+  out <- mvtnorm::rmvnorm(obs, mean = mu, sigma = rho)
   out <- stats::pnorm(out) > 0.5
   out[] <- as.integer(out)
   out <- as.data.frame(out)
@@ -54,4 +53,53 @@ print.prototypeData <- function(x, digits = 2, ...) {
   cli::cli_text("")
   cli::cli_h3("Correlation Matrix:")
   print(round(params$rho, digits))
+}
+
+
+#' Extract parameters from `prototypeData` object
+#'
+#' @param x a `prototypeData` object
+#'
+#' @returns a list with (1) the marginal probabilities of x and (2) the correlation matrix of x
+#' @export
+#'
+get_params <- function(x) {
+  stopifnot(inherits(x, "prototypeData"))
+  attr(x, "params", exact = TRUE)
+}
+
+
+#' Extract Theoretical Conditional Probabilities when all attention is set on kstar
+#'
+#' @param parameters an objection as created by `get_params()`
+#' @param kstar the dimension k with all attention
+#'
+#' @returns a vector of conditional probabilities
+#' @export
+#'
+bivariateCondProb <- function(parameters, kstar) {
+  stopifnot(names(parameters) == c("marginals", "rho"))
+  stopifnot(length(parameters) == 2)
+  stopifnot(kstar %in% seq_along(parameters$marginals))
+
+  correlations <- parameters$rho[kstar, ]
+  pstar <- parameters$marginals[[kstar]]
+
+  output <- purrr::map_dbl(seq_along(parameters$marginals), function(j) {
+
+    rhojk <- correlations[[j]]
+    pj <- parameters$marginals[[j]]
+
+    # P(Xj = 1 | Xk* = 1) = P(Xj = 1, Xk* = 1) / P(Xk* = 1)
+    joint_prob <- mvtnorm::pmvnorm(
+      lower = c(stats::qnorm(1 - pj), stats::qnorm(1 - pstar)),
+      upper = c(Inf, Inf),
+      sigma = rbind(c(1, rhojk), c(rhojk, 1))
+    )
+    attributes(joint_prob) <- NULL
+    joint_prob / pstar
+  })
+
+  names(output) <- names(parameters$marginals)
+  return(output)
 }

@@ -9,7 +9,7 @@
 #' @returns a data frame with distance and similarity
 #' @export
 #'
-calculateDistSim <- function(P, w, data, g, r = 1) {
+calculateDistSim <- function(data, P, w, g, r = 1) {
   stopifnot(g >= 0)
   stopifnot(length(w) == length(P))
   stopifnot(r == 1L | r == 2L)
@@ -39,6 +39,8 @@ compute <- function(data, prototypes, w, g, r = 1L) {
   stopifnot(length(prototypes) >= 2)
   stopifnot(length(prototypes) == length(g))
   stopifnot(all(purrr::map_dbl(prototypes, length) == length(w)))
+  stopifnot((sum(w) - 1) < 1e-10) # `sum(w) == 1` for floating point math
+  stopifnot(all(unlist(prototypes) %in% 0:1)) # temporary restriction to binary case
 
   if (is.null(names(prototypes))) {
     names(prototypes) <- paste0("P", 1:length(prototypes))
@@ -253,7 +255,6 @@ summary.prototypeComputation <- function(object, s = 500, ...) {
 #' @export
 #'
 print.summary.prototypeComputation <- function(x, ...) {
-
   cli::cli_h2("Categories")
   cli::cli_h3("Marginals:")
   print(round(x$marginal$categories, 3))
@@ -264,5 +265,4 @@ print.summary.prototypeComputation <- function(x, ...) {
   print(round(x$marginal$features, 3))
   cli::cli_h3("Conditionals:")
   print(round(x$conditional$features, 3))
-
 }

@@ -21,7 +21,7 @@ rlkjcorr <- function(n, K, eta = 1) {
     R[1, 1] <- 1
     R[1, 2] <- r12
     R[2, 2] <- sqrt(1 - r12^2)
-    if (K > 2)
+    if (K > 2) {
       for (m in 2:(K - 1)) {
         alpha <- alpha - 0.5
         y <- stats::rbeta(1, m / 2, alpha)
@@ -33,18 +33,23 @@ rlkjcorr <- function(n, K, eta = 1) {
         R[1:m, m + 1] <- sqrt(y) * z
         R[m + 1, m + 1] <- sqrt(1 - y)
       }
+    }
     return(crossprod(R))
   }
 
   R <- replicate(n, f(), simplify = FALSE)
 
-  if (n == 1) R <- R[[1]]
+  if (n == 1) {
+    R <- R[[1]]
+  }
   return(R)
 }
 
 dlkjcorr <- function(x, eta = 1, log = TRUE) {
   ll <- det(x)^(eta - 1)
-  if (log == TRUE) ll <- log(ll)
+  if (log == TRUE) {
+    ll <- log(ll)
+  }
   return(ll)
 }
 

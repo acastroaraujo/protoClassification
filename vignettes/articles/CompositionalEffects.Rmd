@@ -1,0 +1,133 @@
+---
+title: "Compositional Effects"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(protoClassification)
+```
+
+Our main goal is to compare different probabilities across different parameters values. In particular, we can measure the "compositional effects" that result from different parameter values by keeping track of these conditional probabilities: $\Pr(\mathbf{x} \mid C, \Omega)$, where $\Omega$ is a short-hand way of referring to all parameters in the prototype model.
+
+Here I provide a few examples.
+
+```{r}
+set.seed(9)
+# Basic Workflow ----
+
+K <- 10
+obs <- 1e3
+
+# Data ----
+
+mu <- rbeta(K, 2, 2)
+rho <- rlkjcorr(1, K, eta = 1)
+
+sim_data <- make_binary_data(mu, rho, obs)
+
+# Prototype Parameters ----
+
+w <- runif(K)
+w <- w / sum(w)
+
+g <- c(10, 10)
+
+prototypes <- list(
+  P1 = rep(1, K),
+  P2 = rep(0, K)
+)
+
+# Compute ----
+
+out <- compute(sim_data, prototypes, w, g)
+probs <- summary(out, s = 1e3)
+```
+
+**Changing** $\gamma$
+
+```{r}
+# This should make the second category more inclusive
+new_out <- compute(sim_data, prototypes, w, g = c(10, 5))
+new_probs <- summary(new_out, s = 1e3)
+```
+
+This should increase the marginal probabilities of the second category.
+
+```{r}
+probs$marginal$categories
+new_probs$marginal$categories
+```
+
+And these are the compositional effects:
+
+```{r}
+probs$conditional$features
+new_probs$conditional$features
+
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+```
+
+**Changing the "attention weights"**
+
+1st, we can make the attention weights more selective, meaning that classification becomes more rule-like.
+
+```{r}
+w2 <- temperature(w, temp = 1 / 4) # cf. "temperature sampling"
+w ## original wegihts
+w2 ## new weights
+
+new_out <- compute(sim_data, prototypes, w = w2, g)
+new_probs <- summary(new_out, s = 1e3)
+```
+
+The change in compositional effects should make it such that the new $p(x_k \mid c)$ are very high when $x_k$ is highly weighted.
+
+```{r}
+probs$conditional$features
+new_probs$conditional$features
+
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+```
+
+At the extreme, when attention is placed exclusively on one feature.
+
+We should expect $p(x_k \mid c)$ to be 1.
+
+```{r}
+w2 <- vector("double", length(w)) # all attention on dimension 3
+w2[[3]] <- 1
+w2
+
+new_out <- compute(sim_data, prototypes, w = w2, g)
+new_probs <- summary(new_out, s = 1e3)
+
+new_probs$conditional$features
+```
+
+Furthermore, marginal probability of $c_1$ should converge to the marginal probability of that feature with exclusive attention.
+
+```{r}
+new_probs$marginal
+```
+
+Compositional Effects:
+
+```{r}
+# diff-in-prob
+new_probs$conditional$features - probs$conditional$features
+
+# risk ratio
+new_probs$conditional$features / probs$conditional$features
+```

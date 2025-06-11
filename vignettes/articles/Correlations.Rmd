@@ -1,0 +1,315 @@
+---
+title: "Correlations"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE}
+library(tidyverse)
+library(protoClassification)
+
+theme_set(
+  theme_light(base_family = "Avenir Next Condensed") +
+    theme(strip.background = element_rect(fill = "#4C4C4C"))
+)
+
+set.seed(9)
+# Basic Workflow ----
+
+K <- 10
+obs <- 5e3 ## high for precision
+
+# Data ----
+
+mu <- rbeta(K, 2, 2)
+rho <- rlkjcorr(1, K, eta = 1)
+
+sim_data <- make_binary_data(mu, rho, obs)
+params <- attr(sim_data, "params")
+
+# Prototype Parameters ----
+
+w <- runif(K)
+w <- w / sum(w)
+
+g <- c(10, 10)
+
+prototypes <- list(
+  P1 = rep(1, K),
+  P2 = rep(0, K)
+)
+
+# Compute ----
+
+comparison <- compute(sim_data, prototypes, w, g)
+
+w2 <- temperature(w, 0)
+w2
+baseline <- compute(sim_data, prototypes, w2, g)
+```
+
+When all attention is placed on a single feature we get to see something very intuitive about the compositions of all the other features.
+
+```{r}
+probs_baseline <- summary(baseline, s = 4e3) # high s for precision
+xGivenC1 <- probs_baseline$conditional$features["C1", ]
+x <- probs_baseline$marginal$features
+
+d <- full_join(
+  enframe(x, name = "x", value = "prob"),
+  enframe(xGivenC1, "x", "probGivenC1")
+) |>
+  full_join(enframe(params$rho[which.max(w2), ], name = "x", value = "corr")) |>
+  mutate(x = factor(x, levels = paste0("x", 1:K)))
+
+d |>
+  ggplot(aes(x, y = prob)) +
+  geom_segment(aes(yend = probGivenC1), arrow = arrow(length = unit(0.1, "cm")))
+
+d |>
+  ggplot(aes(corr, prob)) +
+  geom_segment(
+    aes(yend = probGivenC1),
+    arrow = arrow(length = unit(0.1, "cm"))
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Change in Probability",
+    subtitle = "As a Function of The Correlation Between the Feature with Exclusive Attention and all Others."
+  )
+```
+
+In short, the difference between $p(x)$ and $p(x \mid c)$ is roughly a linear function of the correlation between the exclusive feature and all other features.
+
+Thus, in an uncorrelated world, we would not expect to see much change, right?
+
+**Uncorrelated World**
+
+```{r}
+## identity matrix
+sim_data2 <- make_binary_data(mu, diag(K), obs)
+params2 <- attr(sim_data2, "params")
+uncorrelated <- compute(sim_data2, prototypes, w2, g)
+
+probs_uncorrelated <- summary(uncorrelated, s = 4e3)
+xGivenC1 <- probs_uncorrelated$conditional$features["C1", ]
+x <- probs_uncorrelated$marginal$features
+
+d <- full_join(
+  enframe(x, name = "x", value = "prob"),
+  enframe(xGivenC1, "x", "probGivenC1")
+) |>
+  full_join(enframe(
+    params2$rho[which.max(w2), ],
+    name = "x",
+    value = "corr"
+  )) |>
+  mutate(x = factor(x, levels = paste0("x", 1:K)))
+
+d |>
+  ggplot(aes(x, y = prob)) +
+  geom_segment(aes(yend = probGivenC1), arrow = arrow(length = unit(0.1, "cm")))
+
+d |>
+  ggplot(aes(corr, prob)) +
+  geom_segment(
+    aes(yend = probGivenC1),
+    arrow = arrow(length = unit(0.1, "cm"))
+  ) +
+  labs(
+    title = "Change in Probability",
+    subtitle = "As a Function of The Correlation Between the Feature with Exclusive Attention and all Others."
+  )
+```
+
+Right!
+
+**In Search for a Simple Function**
+
+So, how do we think about the function linking $p(x \mid c)$ to the parameter values in the simple case in which all attention is given to a single feature $k^\star$ (`baseline`)?
+
+The first thing to notice is that the distance function is very simple.
+
+It goes from this:
+
+$$
+\text{dist}(\mathbf{x}_i, \mathbf{p}_A) = \Bigg( \sum_{k = 1}^K w_k | x_{ik} - p_{k} |^r \Bigg)^{\frac{1}{r}}
+$$
+
+to this:
+
+$$
+\text{dist}(\mathbf{x}_i, \mathbf{p}_A) = \Bigg(  1 \times | x_{ik}^\star - p_{k}^\star |^r \Bigg)^{\frac{1}{r}}
+$$
+
+where $\star$ denotes the feature with the single attention and the $r$ parameters are superfluous because the data is binary, and so there are only two possible distances: 0 and 1.
+
+And so this equation:
+
+$$
+S (\mathbf{x}_i, \mathbf{p}_A) = \exp \Big(- \gamma \cdot \text{dist} (\mathbf{x}_i, \mathbf{p}_A) \Big)
+$$
+
+becomes this
+
+$$
+S (\mathbf{x}_i, \mathbf{p}_A) = \begin{cases}
+e^ 0 & \text{if}  &x_k^\star=1 \\
+e^{-\gamma} & \text{if} &x_k^\star=0 
+\end{cases}
+$$
+
+And so the probability that $i \in C_A$, when $x_i^\star = 1$ simply becomes this:
+
+$$
+\Pr(i \in C_A) = \frac{1}{1 + \underbrace{e^{-\gamma_B}+ e^{-\gamma_C} \dots}_{\text{competing categories}}}
+$$
+
+and it is almost close to zero when $x_i^\star = 0$.
+
+If we further assume that $\gamma$ is very high, as is expected when we have more or less exclusionary categories, we have that this probability is approximately either 0 or 1.
+
+But there's more. By the law of total probability we get the following:
+
+$$
+\begin{align}
+\Pr(C = c_1) &= \overbrace{\Pr(C = c_1 \mid X_k^\star = 1)}^{1} \Pr(X_k^\star = 1) + \overbrace{\Pr(C = c_1 \mid X_k^\star = 0)}^{0} \Pr(X_k^\star = 0) \\
+&= \Pr(X_k^\star = 1)
+\end{align} 
+$$
+
+But this is not what we want, we want $\Pr(X_j = 1 \mid C = c)$.
+
+Thus, we can expand our thing once more using the law of total probability.
+
+$$
+\Pr(X_j = 1 \mid C) = \Pr(X_j =1 \mid C, X_k^\star = 1) \Pr(X_k^\star = 1 \mid C) + \Pr(X_j = 1 \mid C, X_k^\star = 0) \Pr(X_k^\star = 0 \mid C)
+$$
+
+Given what we know about all of this, we have that $X_j$ and $C$ are *conditionally independent.*
+
+$$
+X_j \perp C \mid X_k^\star
+$$
+
+This means that $\Pr(X_j \mid C, X_k^\star) = \Pr(X_j \mid X_k^\star)$.
+
+So we can rewrite our conditional probability (using the law of total probability) as:
+
+$$
+\Pr(X_j = 1 \mid C) = \Pr(X_j = 1 \mid X_k^\star = 1) \Pr(X_k^\star = 1 \mid C = c_1) + \Pr(X_j = 1 \mid X_k^\star = 0) \Pr(X_k^\star = 0 \mid C = c_1)
+$$
+
+Since we established that with high $\gamma$ values: - $\Pr(X_k^\star = 1 \mid C = c_1) \approx 1$ and $\Pr(X_k^\star = 0 \mid C = c_1) \approx 0$ - $\Pr(X_k^\star = 1 \mid C = c_2) \approx 0$ and $\Pr(X_k^\star = 0 \mid C = c_2) \approx 1$
+
+This simplifies to:
+
+$$
+\Pr(X_j = 1 \mid C = c_1) \approx \Pr(X_j = 1 \mid X_k^\star = 1) 
+$$
+
+Let's verify this.
+
+```{r}
+exclusive_feature <- colnames(sim_data)[which.max(w2)]
+exclusive_feature
+
+sim_data |>
+  summarize(across(everything(), mean), .by = all_of(exclusive_feature))
+
+probs_baseline$conditional$features
+```
+
+Correct!
+
+**The Connection to Correlations**
+
+The relationship between $\Pr(X_j = 1 \mid X_k^\star)$ and correlations becomes clear when we consider the bivariate normal copula underlying our binary data generation process.
+
+For binary variables generated from a bivariate normal with correlation $\rho_{jk^\star}$, we have:
+
+$$
+\Pr(X_j = 1 \mid X_k^\star = 1) = \Phi_2\left(\Phi^{-1}(p_j), \Phi^{-1}(p_{k}^\star); \rho_{jk}^\star \right) / p_{k}^\star
+$$
+
+IMPROVE, WITH JOINT PROBABILITY AND BIVARIATE CDF
+
+where $p_j$ and $p_{k}^\star$ are the marginal probabilities, and $\Phi_2$ is the bivariate standard normal CDF.
+
+```{r}
+bivariateCondProb(params, kstar = 3) |> round(3)
+probs_baseline$conditional$features |> round(3)
+```
+
+**Visualization of the Relationship**
+
+```{r}
+# Create comprehensive comparison
+comparison_data <- tibble(
+  feature = names(sim_data),
+  marginal = params$marginals,
+  correlation = params$rho[exclusive_feature, ],
+  prototype_cond = probs_baseline$conditional$features["C1", ],
+  theoretical_cond = theoreticalCondProb(params, kstar = 3),
+  change = prototype_cond - marginal
+) |>
+  filter(feature != exclusive_feature) # Remove the exclusive feature
+
+# Plot the relationship
+comparison_data |>
+  ggplot(aes(x = correlation, y = change)) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+  labs(
+    title = "Change in Probability vs. Correlation",
+    subtitle = "Linear relationship between correlation and P(X_j | C) - P(X_j)",
+    x = expression(paste(
+      "Correlation with exclusive feature (",
+      rho[jk^"*"],
+      ")"
+    )),
+    y = expression(paste(
+      "Change in probability: P(",
+      X[j],
+      " | C) - P(",
+      X[j],
+      ")"
+    ))
+  )
+
+# Show correlation coefficient
+cor_coef <- cor(comparison_data$correlation, comparison_data$change)
+cat("Correlation between ρ and probability change:", round(cor_coef, 3), "\n")
+```
+
+**Summary**
+
+This analysis demonstrates that when all attention is focused on a single feature in prototype-based classification:
+
+1.  **Conditional Independence**: Other features become conditionally independent of the category given the exclusive feature: $X_j \perp C \mid X_k^\star$
+
+2.  **Simplified Conditional Probabilities**:
+
+    -   $\Pr(X_j = 1 \mid C = c_1) \approx \Pr(X_j = 1 \mid X_k^\star = 1)$
+    -   $\Pr(X_j = 1 \mid C = c_2) \approx \Pr(X_j = 1 \mid X_k^\star = 0)$
+
+3.  **Linear Relationship with Correlations**: The change in probability $\Pr(X_j \mid C) - \Pr(X_j)$ is approximately linear in the correlation $\rho_{jk^\star}$ between feature $j$ and the exclusive feature $k^\star$.
+
+4.  **Theoretical Foundation**: This relationship stems from the bivariate normal copula underlying the binary data generation process, making the prototype model's behavior predictable and interpretable.
+
+This provides both theoretical insight and practical understanding of how prototype-based classification behaves under extreme attention weighting scenarios.
+
+## Extra
+
+Modifying the correlation coefficient...
+
+`transform_rho`
