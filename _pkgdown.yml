@@ -16,11 +16,9 @@ navbar:
 reference:
 - title: Data Simulation
   contents:
-    - rlkjcorr
-    - transform_rho
     - make_binary_data
-    - get_params
-    - bivariateCondProb
+    - print.prototypeData
+    - rlkjcorr
 
 - title: Prototype Model
   contents:
@@ -29,8 +27,14 @@ reference:
     - consolidate
     - conditionalProbsSample
     - conditionalProbs
+    - summary.prototypeComputation
+    - print.prototypeComputation
+    - print.summary.prototypeComputation
+    - compositionalEffect
 
 - title: Misc.
   contents:
     - temperature
-    - compositionalEffect
+    - transform_rho
+    - get_params
+    - bivariateCondProb

@@ -1,20 +1,33 @@
 #' Make Correlated Binary Data
 #'
-#' @param marginals a K-sized vector of marginal probabilities
-#' @param rho a correlation matrix
-#' @param obs number of rows in the dataset
+#' Generates correlated binary data using the Gaussian copula approach.
+#' The function first generates multivariate normal data with specified
+#' correlations, then transforms it to binary data while preserving the
+#' correlation structure.
 #'
-#' @returns a matrix of simulated observations
+#' @param marginals A numeric vector of marginal probabilities for each variable.
+#'   Must be between 0 and 1. If unnamed, variables will be named x1, x2, etc.
+#' @param rho A symmetric correlation matrix with dimensions matching the length
+#'   of \code{marginals}
+#' @param obs Integer. Number of observations (rows) to generate (default: 1000)
+#'
+#' @return A \code{prototypeData} object (inherits from data.frame) containing:
+#'   \describe{
+#'     \item{Binary data}{A data frame with \code{obs} rows and \code{length(marginals)} columns}
+#'     \item{params attribute}{List containing the original marginals and correlation matrix}
+#'   }
+#'
 #' @export
 #'
 #' @examples
+#' # Generate 8-dimensional correlated binary data
 #' K <- 8
 #' marginals <- rbeta(K, 2, 3)
 #' rho <- rlkjcorr(1, K, eta = 1 / 4)
 #' out <- make_binary_data(marginals, rho)
-#' head(out)
-#' colMeans(out)
-#' marginals
+#' out
+#'
+#' @seealso \code{\link{get_params}}, \code{\link{print.prototypeData}}
 make_binary_data <- function(marginals, rho, obs = 1e3) {
   stopifnot(obs > 0)
   stopifnot(isSymmetric.matrix(rho))
@@ -37,7 +50,20 @@ make_binary_data <- function(marginals, rho, obs = 1e3) {
   )
 }
 
+#' Print method for prototypeData objects
+#'
+#' Displays a formatted summary of a prototypeData object, showing the
+#' data structure and the parameters used to generate it (marginal
+#' probabilities and correlation matrix).
+#'
+#' @param x A prototypeData object created by \code{\link{make_binary_data}}
+#' @param digits Integer. Number of decimal places to display for numeric values (default: 2)
+#' @param ... (unused)
+#'
+#' @return invisibly returns the input object \code{x}
+#' @method print prototypeData
 #' @export
+#'
 #'
 print.prototypeData <- function(x, digits = 2, ...) {
   output <- utils::capture.output(utils::str(x, give.attr = FALSE))
@@ -56,12 +82,22 @@ print.prototypeData <- function(x, digits = 2, ...) {
 }
 
 
-#' Extract parameters from `prototypeData` object
+#' Extract parameters from prototypeData object
 #'
-#' @param x a `prototypeData` object
+#' Retrieves the parameters (marginal probabilities and correlation matrix)
+#' that were used to generate a prototypeData object.
 #'
-#' @returns a list with (1) the marginal probabilities of x and (2) the correlation matrix of x
+#' @param x A prototypeData object created by \code{\link{make_binary_data}}
+#'
+#' @return A list with two components:
+#'   \describe{
+#'     \item{marginals}{Named numeric vector of marginal probabilities}
+#'     \item{rho}{Correlation matrix used to generate the data}
+#'   }
+#'
 #' @export
+#'
+#' @seealso \code{\link{make_binary_data}}, \code{\link{bivariateCondProb}}
 #'
 get_params <- function(x) {
   stopifnot(inherits(x, "prototypeData"))
@@ -69,13 +105,26 @@ get_params <- function(x) {
 }
 
 
-#' Extract Theoretical Conditional Probabilities when all attention is set on kstar
+#' Extract theoretical conditional probabilities for bivariate case
 #'
-#' @param parameters an objection as created by `get_params()`
-#' @param kstar the dimension k with all attention
+#' Computes the theoretical conditional probabilities P(X_j = 1 | C = c1)
+#' for all variables j when attention is focused entirely on variable k*.
+#' In this case, we have that P(X_j = 1 | C = c1) = P(X_j = 1 | X_k* = 1)
+#' This uses the bivariate normal distribution to compute exact conditional
+#' probabilities based on the correlation structure.
 #'
-#' @returns a vector of conditional probabilities
+#' @param parameters A list containing marginal probabilities and correlation matrix,
+#'   as returned by \code{\link{get_params}}.
+#' @param kstar Integer. The index of the variable receiving all attention
+#'   (must be between 1 and the number of variables)
+#'
+#' @return A named numeric vector of conditional probabilities P(X_j = 1 | X_k* = 1)
+#'   for all variables j, where the variable at position \code{kstar} will have
+#'   probability 1 (since X_k* = 1 is the conditioning event)
+#'
 #' @export
+#'
+#' @seealso \code{\link{get_params}}, \code{\link{make_binary_data}}
 #'
 bivariateCondProb <- function(parameters, kstar) {
   stopifnot(names(parameters) == c("marginals", "rho"))
@@ -90,7 +139,6 @@ bivariateCondProb <- function(parameters, kstar) {
     rhojk <- correlations[[j]]
     pj <- parameters$marginals[[j]]
 
-    # P(Xj = 1 | Xk* = 1) = P(Xj = 1, Xk* = 1) / P(Xk* = 1)
     joint_prob <- mvtnorm::pmvnorm(
       lower = c(stats::qnorm(1 - pj), stats::qnorm(1 - pstar)),
       upper = c(Inf, Inf),

@@ -257,7 +257,7 @@ comparison_data <- tibble(
   marginal = params$marginals,
   correlation = params$rho[exclusive_feature, ],
   prototype_cond = probs_baseline$conditional$features["C1", ],
-  theoretical_cond = theoreticalCondProb(params, kstar = 3),
+  theoretical_cond = bivariateCondProb(params, kstar = 3),
   change = prototype_cond - marginal
 ) |>
   filter(feature != exclusive_feature) # Remove the exclusive feature

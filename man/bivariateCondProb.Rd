@@ -2,18 +2,29 @@
 % Please edit documentation in R/data.R
 \name{bivariateCondProb}
 \alias{bivariateCondProb}
-\title{Extract Theoretical Conditional Probabilities when all attention is set on kstar}
+\title{Extract theoretical conditional probabilities for bivariate case}
 \usage{
 bivariateCondProb(parameters, kstar)
 }
 \arguments{
-\item{parameters}{an objection as created by `get_params()`}
+\item{parameters}{A list containing marginal probabilities and correlation matrix,
+as returned by \code{\link{get_params}}.}
 
-\item{kstar}{the dimension k with all attention}
+\item{kstar}{Integer. The index of the variable receiving all attention
+(must be between 1 and the number of variables)}
 }
 \value{
-a vector of conditional probabilities
+A named numeric vector of conditional probabilities P(X_j = 1 | X_k* = 1)
+  for all variables j, where the variable at position \code{kstar} will have
+  probability 1 (since X_k* = 1 is the conditioning event)
 }
 \description{
-Extract Theoretical Conditional Probabilities when all attention is set on kstar
+Computes the theoretical conditional probabilities P(X_j = 1 | C = c1)
+for all variables j when attention is focused entirely on variable k*.
+In this case, we have that P(X_j = 1 | C = c1) = P(X_j = 1 | X_k* = 1)
+This uses the bivariate normal distribution to compute exact conditional
+probabilities based on the correlation structure.
+}
+\seealso{
+\code{\link{get_params}}, \code{\link{make_binary_data}}
 }

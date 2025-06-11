@@ -2,16 +2,24 @@
 % Please edit documentation in R/data.R
 \name{get_params}
 \alias{get_params}
-\title{Extract parameters from `prototypeData` object}
+\title{Extract parameters from prototypeData object}
 \usage{
 get_params(x)
 }
 \arguments{
-\item{x}{a `prototypeData` object}
+\item{x}{A prototypeData object created by \code{\link{make_binary_data}}}
 }
 \value{
-a list with (1) the marginal probabilities of x and (2) the correlation matrix of x
+A list with two components:
+  \describe{
+    \item{marginals}{Named numeric vector of marginal probabilities}
+    \item{rho}{Correlation matrix used to generate the data}
+  }
 }
 \description{
-Extract parameters from `prototypeData` object
+Retrieves the parameters (marginal probabilities and correlation matrix)
+that were used to generate a prototypeData object.
+}
+\seealso{
+\code{\link{make_binary_data}}, \code{\link{bivariateCondProb}}
 }

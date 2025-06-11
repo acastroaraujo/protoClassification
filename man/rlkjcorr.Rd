@@ -2,24 +2,55 @@
 % Please edit documentation in R/correlations.R
 \name{rlkjcorr}
 \alias{rlkjcorr}
-\title{LKJ distribution}
+\title{Generate random correlation matrices from the LKJ distribution}
 \source{
-These functions come from Richard McElreath's `rethinking` package
+These functions come from Richard McElreath's \href{https://github.com/rmcelreath/rethinking/blob/master/R/distributions.r}{rethinking} package
 and, judging by the source code, it seems that he got them from Ben Goodrich.
 }
 \usage{
 rlkjcorr(n, K, eta = 1)
 }
 \arguments{
-\item{n}{number of draws}
+\item{n}{Integer. Number of correlation matrices to generate}
 
-\item{K}{number of rows and columns in the matrix}
+\item{K}{Integer. Dimension of the correlation matrix (number of rows/columns).
+Must be at least 2}
 
-\item{eta}{prior, as eta increases more mass is placed over identity matrices}
+\item{eta}{Numeric. Shape parameter controlling the concentration around the
+identity matrix. Must be positive. When eta = 1, the distribution is uniform
+over correlation matrices. As eta increases, more mass is placed on matrices
+closer to the identity matrix}
 }
 \value{
-a matrix or list of matrices
+If \code{n = 1}, returns a single K×K correlation matrix.
+  If \code{n > 1}, returns a list of \code{n} correlation matrices.
+  All matrices are symmetric and positive definite with 1s on the diagonal.
 }
 \description{
-LKJ distribution
+Generates random correlation matrices from the LKJ (Lewandowski-Kurowicka-Joe)
+distribution. The LKJ distribution is a prior distribution over correlation
+matrices that generalizes the uniform distribution over correlation matrices.
+As eta increases, more probability mass is concentrated around the identity matrix.
+}
+\examples{
+# Generate a single 4x4 correlation matrix
+rho1 <- rlkjcorr(n = 1, K = 4, eta = 1)
+round(rho1, 2)
+
+# Generate 5 correlation matrices with more concentration around identity
+rho_list <- rlkjcorr(n = 5, K = 3, eta = 4)
+lapply(rho_list, round, 2)
+
+# Compare different eta values
+rho_uniform <- rlkjcorr(1, 3, eta = 1)    # Uniform over correlations
+rho_concentrated <- rlkjcorr(1, 3, eta = 10) # Concentrated near identity
+
+}
+\references{
+Lewandowski, D., Kurowicka, D., & Joe, H. (2009). Generating random
+correlation matrices based on vines and extended onion method.
+Journal of multivariate analysis, 100(9), 1989-2001.
+}
+\seealso{
+\code{\link{dlkjcorr}}, \code{\link{transform_rho}}
 }

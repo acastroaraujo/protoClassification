@@ -75,6 +75,18 @@ compute <- function(data, prototypes, w, g, r = 1L) {
   )
 }
 
+
+#' Print method for prototypeComputation objects
+#'
+#' Displays a formatted summary of a prototypeComputation object, including
+#' the data structure, prototypes, distance type, sensitivity parameters,
+#' attention weights, and marginal probabilities.
+#'
+#' @param x a prototypeComputation object created by \code{\link{compute}}
+#' @param ... (unused)
+#'
+#' @return Invisibly returns the input object \code{x}
+#' @method print prototypeComputation
 #' @export
 #'
 print.prototypeComputation <- function(x, ...) {
@@ -204,7 +216,6 @@ conditionalProbsSample <- function(
   return(output)
 }
 
-
 #' Get Conditional Probabilities
 #'
 #' @param x a `prototype` object created by the `compute()` function.
@@ -236,7 +247,26 @@ conditionalProbs <- function(x, type = c("features", "categories"), s = 500) {
   return(output)
 }
 
+#' Summary method for prototypeComputation objects
+#'
+#' Computes and returns summary statistics for a prototypeComputation object,
+#' including marginal and conditional probabilities for both categories and features.
+#'
+#' @param object A prototypeComputation object created by \code{\link{compute}}
+#' @param s Integer. Number of draws to sample from the probabilities for
+#'   computing conditional probabilities (default: 500)
+#' @param ... (unused)
+#'
+#' @return A summary.prototypeComputation object containing:
+#'   \describe{
+#'     \item{marginal}{List with marginal probabilities for categories and features}
+#'     \item{conditional}{List with conditional probabilities for categories and features}
+#'   }
+#'
+#' @method summary prototypeComputation
 #' @export
+#'
+#' @seealso \code{\link{conditionalProbs}}, \code{\link{compute}}
 #'
 summary.prototypeComputation <- function(object, s = 500, ...) {
   categories <- conditionalProbs(object, "categories", s)
@@ -252,6 +282,17 @@ summary.prototypeComputation <- function(object, s = 500, ...) {
   structure(output, class = c("summary.prototypeComputation", class(output)))
 }
 
+#' Print method for summary.prototypeComputation objects
+#'
+#' Prints a formatted display of summary statistics from a prototypeComputation
+#' object, showing marginal and conditional probabilities for categories and features.
+#'
+#' @param x A summary.prototypeComputation object created by
+#'   \code{\link{summary.prototypeComputation}}
+#' @param ... (unused)
+#'
+#' @return Invisibly returns the input object \code{x}
+#' @method print summary.prototypeComputation
 #' @export
 #'
 print.summary.prototypeComputation <- function(x, ...) {
