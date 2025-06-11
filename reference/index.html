@@ -16,6 +16,11 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/CompositionalEffects.html">Compositional Effects</a></li>
+    <li><a class="dropdown-item" href="../articles/Correlations.html">Correlations</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/acastroaraujo/protoClassification/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -31,7 +36,7 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="data-simulation">Data Simulation<a class="anchor" aria-label="anchor" href="#data-simulation"></a></h2>
 
 
 
@@ -43,11 +48,34 @@
 
       <dl><dt>
 
-          <code><a href="calculateDistSim.html">calculateDistSim()</a></code>
+          <code><a href="make_binary_data.html">make_binary_data()</a></code>
 
         </dt>
-        <dd>Calculate distances and similarity from features to prototype</dd>
+        <dd>Make Correlated Binary Data</dd>
       </dl><dl><dt>
+
+          <code><a href="print.prototypeData.html">print(<i>&lt;prototypeData&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for prototypeData objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="rlkjcorr.html">rlkjcorr()</a></code>
+
+        </dt>
+        <dd>Generate random correlation matrices from the LKJ distribution</dd>
+      </dl></div><div class="section level2">
+      <h2 id="prototype-model">Prototype Model<a class="anchor" aria-label="anchor" href="#prototype-model"></a></h2>
+
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="compute.html">compute()</a></code>
 
@@ -55,16 +83,10 @@
         <dd>Calculate distance, similarity, and membership probabilities</dd>
       </dl><dl><dt>
 
-          <code><a href="conditionalProbs.html">conditionalProbs()</a></code>
+          <code><a href="calculateDistSim.html">calculateDistSim()</a></code>
 
         </dt>
-        <dd>Get Conditional Probabilities</dd>
-      </dl><dl><dt>
-
-          <code><a href="conditionalProbsSample.html">conditionalProbsSample()</a></code>
-
-        </dt>
-        <dd>Get Posterior Draws of Conditional Probabilities</dd>
+        <dd>Calculate distances and similarity from features to prototype</dd>
       </dl><dl><dt>
 
           <code><a href="consolidate.html">consolidate()</a></code>
@@ -73,30 +95,78 @@
         <dd>Consolidate computation into a single data frame</dd>
       </dl><dl><dt>
 
-          <code><a href="make_binary_data.html">make_binary_data()</a></code>
+          <code><a href="conditionalProbsSample.html">conditionalProbsSample()</a></code>
 
         </dt>
-        <dd>Make Binary Data</dd>
+        <dd>Get Posterior Draws of Conditional Probabilities</dd>
       </dl><dl><dt>
 
-          <code><a href="rlkjcorr.html">rlkjcorr()</a></code>
+          <code><a href="conditionalProbs.html">conditionalProbs()</a></code>
 
         </dt>
-        <dd>LKJ distribution</dd>
+        <dd>Get Conditional Probabilities</dd>
       </dl><dl><dt>
+
+          <code><a href="summary.prototypeComputation.html">summary(<i>&lt;prototypeComputation&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summary method for prototypeComputation objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.prototypeComputation.html">print(<i>&lt;prototypeComputation&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for prototypeComputation objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.summary.prototypeComputation.html">print(<i>&lt;summary.prototypeComputation&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for summary.prototypeComputation objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="compositionalEffect.html">compositionalEffect()</a></code>
+
+        </dt>
+        <dd>Compare Compositional Effects Between Two Prototype Computations</dd>
+      </dl></div><div class="section level2">
+      <h2 id="misc-">Misc.<a class="anchor" aria-label="anchor" href="#misc-"></a></h2>
+
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="temperature.html">temperature()</a></code>
 
         </dt>
-        <dd>Temperature Scaling</dd>
+        <dd>Temperature Scaling for Probability Distributions</dd>
       </dl><dl><dt>
 
           <code><a href="transform_rho.html">transform_rho()</a></code>
 
         </dt>
-        <dd>Transform correlation</dd>
+        <dd>Transform correlation matrix by setting specific correlations</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_params.html">get_params()</a></code>
+
+        </dt>
+        <dd>Extract parameters from prototypeData object</dd>
+      </dl><dl><dt>
+
+          <code><a href="bivariateCondProb.html">bivariateCondProb()</a></code>
+
+        </dt>
+        <dd>Extract theoretical conditional probabilities for bivariate case</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

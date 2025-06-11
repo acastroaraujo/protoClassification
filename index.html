@@ -32,6 +32,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/CompositionalEffects.html">Compositional Effects</a></li>
+    <li><a class="dropdown-item" href="articles/Correlations.html">Correlations</a></li>
+  </ul>
+</li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -131,9 +138,9 @@
 <p>Calculate distance and similarity for one prototype at a time:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculateDistSim.html">calculateDistSim</a></span><span class="op">(</span></span>
-<span>  P <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span><span class="op">)</span>, </span>
-<span>  w <span class="op">=</span> <span class="va">w</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">sim_data</span>, </span>
+<span>  data <span class="op">=</span> <span class="va">sim_data</span>,</span>
+<span>  P <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span><span class="op">)</span>,</span>
+<span>  w <span class="op">=</span> <span class="va">w</span>,</span>
 <span>  g <span class="op">=</span> <span class="va">g</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -308,218 +315,6 @@
 <span><span class="co">#&gt; C1 0.523 0.779 0.329 0.933 0.618 0.625</span></span>
 <span><span class="co">#&gt; C2 0.129 0.429 0.057 0.946 0.480 0.038</span></span>
 <span><span class="co">#&gt; C3 0.378 0.364 0.691 0.705 0.788 0.088</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="compositional-effects">Compositional Effects<a class="anchor" aria-label="anchor" href="#compositional-effects"></a>
-</h2>
-<p>Our main goal is to compare different probabilities across different parameters values. In particular, we can measure the “compositional effects” that result from different parameter values by keeping track of these conditional probabilities: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐱</mi><mo>∣</mo><mi>C</mi><mo>,</mo><mi>Ω</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(\mathbf{x} \mid C, \Omega)</annotation></semantics></math>, where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Ω</mi><annotation encoding="application/x-tex">\Omega</annotation></semantics></math> is a short-hand way of referring to all parameters in the prototype model.</p>
-<p>Here I provide a few examples.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9</span><span class="op">)</span></span>
-<span><span class="co"># Basic Workflow ----</span></span>
-<span></span>
-<span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fl">10</span> </span>
-<span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fl">1e3</span></span>
-<span></span>
-<span><span class="co"># Data ----</span></span>
-<span></span>
-<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">rbeta</a></span><span class="op">(</span><span class="va">K</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span> </span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">mu</span>, <span class="va">rho</span>, <span class="va">obs</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Prototype Parameters ----</span></span>
-<span></span>
-<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span></span>
-<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="va">w</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">prototypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  P1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span><span class="op">)</span>,</span>
-<span>  P2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">K</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compute ----</span></span>
-<span></span>
-<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">prototypes</span>, <span class="va">w</span>, <span class="va">g</span><span class="op">)</span></span>
-<span><span class="va">probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">out</span>, s <span class="op">=</span> <span class="fl">1e3</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Changing</strong> <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># This should make the second category more inclusive</span></span>
-<span><span class="va">new_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">prototypes</span>, <span class="va">w</span>, g <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">new_probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">new_out</span>, s <span class="op">=</span> <span class="fl">1e3</span><span class="op">)</span></span></code></pre></div>
-<p>This should increase the marginal probabilities of the second category.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">probs</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">categories</span></span>
-<span><span class="co">#&gt;        C1        C2 </span></span>
-<span><span class="co">#&gt; 0.3467094 0.6532906</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">categories</span></span>
-<span><span class="co">#&gt;        C1        C2 </span></span>
-<span><span class="co">#&gt; 0.1272612 0.8727388</span></span></code></pre></div>
-<p>And these are the compositional effects:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2        x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.5728644 0.5546241 0.4564499 0.5167535 0.8871769 0.3245671 0.8346980</span></span>
-<span><span class="co">#&gt; C2 0.1476666 0.1344176 0.4190103 0.4130322 0.5257202 0.1370018 0.8030352</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.5830473 0.3673473 0.4692927</span></span>
-<span><span class="co">#&gt; C2 0.4483320 0.4632084 0.3647565</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2        x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.6926339 0.7162739 0.4362536 0.5256324 0.9326090 0.3853025 0.8662932</span></span>
-<span><span class="co">#&gt; C2 0.2370709 0.2164392 0.4313787 0.4378470 0.6099313 0.1753121 0.8064060</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.6368593 0.3008669 0.4785071</span></span>
-<span><span class="co">#&gt; C2 0.4743415 0.4487705 0.3897002</span></span>
-<span></span>
-<span><span class="co"># diff-in-prob</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">-</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;            x1         x2          x3          x4         x5         x6</span></span>
-<span><span class="co">#&gt; C1 0.11976955 0.16164978 -0.02019631 0.008878864 0.04543211 0.06073539</span></span>
-<span><span class="co">#&gt; C2 0.08940431 0.08202158  0.01236839 0.024814811 0.08421110 0.03831033</span></span>
-<span><span class="co">#&gt;             x7         x8          x9         x10</span></span>
-<span><span class="co">#&gt; C1 0.031595164 0.05381202 -0.06648039 0.009214365</span></span>
-<span><span class="co">#&gt; C2 0.003370833 0.02600956 -0.01443787 0.024943624</span></span>
-<span><span class="co"># risk ratio</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">/</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;          x1       x2        x3       x4       x5       x6       x7       x8</span></span>
-<span><span class="co">#&gt; C1 1.209071 1.291458 0.9557535 1.017182 1.051210 1.187127 1.037852 1.092294</span></span>
-<span><span class="co">#&gt; C2 1.605447 1.610200 1.0295181 1.060080 1.160182 1.279634 1.004198 1.058014</span></span>
-<span><span class="co">#&gt;           x9      x10</span></span>
-<span><span class="co">#&gt; C1 0.8190258 1.019635</span></span>
-<span><span class="co">#&gt; C2 0.9688307 1.068384</span></span></code></pre></div>
-<p><strong>Changing the “attention weights”</strong></p>
-<p>1st, we can make the attention weights more selective, meaning that classification becomes more rule-like.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">w2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/temperature.html">temperature</a></span><span class="op">(</span><span class="va">w</span>, temp <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span> <span class="co"># cf. "temperature sampling"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot</a></span><span class="op">(</span><span class="va">w</span>, names.arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Original Weights"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-20-1.png" width="100%"></p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot</a></span><span class="op">(</span><span class="va">w2</span>, names.arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"New Weights"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-20-2.png" width="100%"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">new_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">prototypes</span>, w <span class="op">=</span> <span class="va">w2</span>, <span class="va">g</span><span class="op">)</span></span>
-<span><span class="va">new_probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">new_out</span>, s <span class="op">=</span> <span class="fl">1e3</span><span class="op">)</span></span></code></pre></div>
-<p>The change in compositional effects should make it such that the new <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>∣</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(x_k \mid c)</annotation></semantics></math> are very high when <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math> is highly weighted.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2        x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.5728644 0.5546241 0.4564499 0.5167535 0.8871769 0.3245671 0.8346980</span></span>
-<span><span class="co">#&gt; C2 0.1476666 0.1344176 0.4190103 0.4130322 0.5257202 0.1370018 0.8030352</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.5830473 0.3673473 0.4692927</span></span>
-<span><span class="co">#&gt; C2 0.4483320 0.4632084 0.3647565</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1         x2        x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.4860178 0.86941998 0.3071452 0.3394442 0.7586206 0.2901795 0.9158345</span></span>
-<span><span class="co">#&gt; C2 0.2139871 0.03015844 0.4849078 0.4954442 0.6053495 0.1646123 0.7708265</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.5976563 0.2572416 0.3823109</span></span>
-<span><span class="co">#&gt; C2 0.4514389 0.5032435 0.4089434</span></span>
-<span></span>
-<span><span class="co"># diff-in-prob</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">-</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;             x1         x2          x3          x4          x5          x6</span></span>
-<span><span class="co">#&gt; C1 -0.08684659  0.3147958 -0.14930471 -0.17730924 -0.12855632 -0.03438758</span></span>
-<span><span class="co">#&gt; C2  0.06632044 -0.1042591  0.06589754  0.08241196  0.07962923  0.02761056</span></span>
-<span><span class="co">#&gt;             x7          x8         x9         x10</span></span>
-<span><span class="co">#&gt; C1  0.08113647 0.014608959 -0.1101057 -0.08698181</span></span>
-<span><span class="co">#&gt; C2 -0.03220874 0.003106965  0.0400351  0.04418685</span></span>
-<span><span class="co"># risk ratio</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">/</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2        x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.8483994 1.5675841 0.6729001 0.6568785 0.8550951 0.8940509 1.0972046</span></span>
-<span><span class="co">#&gt; C2 1.4491228 0.2243638 1.1572695 1.1995291 1.1514669 1.2015343 0.9598912</span></span>
-<span><span class="co">#&gt;          x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 1.025056 0.7002682 0.8146534</span></span>
-<span><span class="co">#&gt; C2 1.006930 1.0864300 1.1211407</span></span></code></pre></div>
-<p>At the extreme, when attention is placed exclusively on one feature.</p>
-<p>We should expect <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>∣</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(x_k \mid c)</annotation></semantics></math> to be 1.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">w2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"double"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span><span class="op">)</span> <span class="co"># all attention on dimension 3</span></span>
-<span><span class="va">w2</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot</a></span><span class="op">(</span><span class="va">w2</span>, names.arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">w2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-22-1.png" width="100%"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">new_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">prototypes</span>, w <span class="op">=</span> <span class="va">w2</span>, <span class="va">g</span><span class="op">)</span></span>
-<span><span class="va">new_probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">new_out</span>, s <span class="op">=</span> <span class="fl">1e3</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2           x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.4212941 0.1689949 9.999469e-01 0.5231397 0.6712993 0.2152812 0.7314927</span></span>
-<span><span class="co">#&gt; C2 0.1989426 0.3644288 2.811951e-05 0.3926105 0.6355607 0.1918985 0.8767538</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.4097318 0.3888849 0.3842530</span></span>
-<span><span class="co">#&gt; C2 0.5598537 0.4612716 0.4137375</span></span></code></pre></div>
-<p>Furthermore, marginal probability of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math> should converge to the marginal probability of that feature with exclusive attention.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">new_probs</span><span class="op">$</span><span class="va">marginal</span></span>
-<span><span class="co">#&gt; $categories</span></span>
-<span><span class="co">#&gt;        C1        C2 </span></span>
-<span><span class="co">#&gt; 0.4320062 0.5679938 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $features</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6    x7    x8    x9   x10 </span></span>
-<span><span class="co">#&gt; 0.295 0.280 0.432 0.449 0.651 0.202 0.814 0.495 0.430 0.401</span></span></code></pre></div>
-<p>Compositional Effects:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># diff-in-prob</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">-</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;             x1         x2         x3           x4         x5          x6</span></span>
-<span><span class="co">#&gt; C1 -0.15157026 -0.3856292  0.5434970  0.006386203 -0.2158776 -0.10928584</span></span>
-<span><span class="co">#&gt; C2  0.05127596  0.2300112 -0.4189822 -0.020421740  0.1098404  0.05489672</span></span>
-<span><span class="co">#&gt;             x7         x8           x9         x10</span></span>
-<span><span class="co">#&gt; C1 -0.10320531 -0.1733156  0.021537656 -0.08503970</span></span>
-<span><span class="co">#&gt; C2  0.07371856  0.1115218 -0.001936813  0.04898097</span></span>
-<span></span>
-<span><span class="co"># risk ratio</span></span>
-<span><span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">/</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2           x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.7354169 0.3047017 2.190705e+00 1.0123583 0.7566691 0.6632874 0.8763561</span></span>
-<span><span class="co">#&gt; C2 1.3472414 2.7111691 6.710935e-05 0.9505565 1.2089333 1.4007008 1.0917999</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.7027419 1.0586302 0.8187918</span></span>
-<span><span class="co">#&gt; C2 1.2487482 0.9958187 1.1342840</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="back-to-correlations">Back to Correlations<a class="anchor" aria-label="anchor" href="#back-to-correlations"></a>
-</h2>
-<p>When all attention is placed on one feature, like in the previous example, we get to see something very intuitive about the compositions of all the other features.</p>
-<p>If we compare</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">xCondC1</span> <span class="op">&lt;-</span> <span class="va">new_probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span><span class="op">[</span><span class="st">"C1"</span>, <span class="op">]</span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">new_probs</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">features</span></span>
-<span></span>
-<span><span class="va">xCondC1</span> <span class="op">-</span> <span class="va">x</span> <span class="co">## difference from baseline marginal probability</span></span>
-<span><span class="co">#&gt;          x1          x2          x3          x4          x5          x6 </span></span>
-<span><span class="co">#&gt;  0.12629413 -0.11100510  0.56794688  0.07413969  0.02029934  0.01328124 </span></span>
-<span><span class="co">#&gt;          x7          x8          x9         x10 </span></span>
-<span><span class="co">#&gt; -0.08250726 -0.08526823 -0.04111505 -0.01674697</span></span></code></pre></div>
-<p>Look at the original correlation matrix:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">new_out</span><span class="op">$</span><span class="va">data</span>, <span class="st">"params"</span><span class="op">)</span><span class="op">$</span><span class="va">rho</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="st">"x3"</span>, <span class="op">]</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     x1     x2     x3     x4     x5     x6     x7     x8     x9    x10 </span></span>
-<span><span class="co">#&gt;  0.146 -0.422  1.000  0.269 -0.014 -0.060 -0.270 -0.204 -0.078  0.006</span></span></code></pre></div>
-<p>It seems like this difference from baseline is a linear function of the correlations between the features.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>corr <span class="op">=</span> <span class="va">rho</span><span class="op">[</span><span class="st">"x3"</span>, <span class="op">]</span>, diff <span class="op">=</span> <span class="va">xCondC1</span> <span class="op">-</span> <span class="va">x</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-27-1.png" width="100%"></p>
-<p>This is certainly not the case when the attention weights are more spread out.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">xCondC1</span> <span class="op">&lt;-</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span><span class="op">[</span><span class="st">"C1"</span>, <span class="op">]</span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">probs</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">data</span>, <span class="st">"params"</span><span class="op">)</span><span class="op">$</span><span class="va">rho</span></span>
-<span></span>
-<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>corr <span class="op">=</span> <span class="va">rho</span><span class="op">[</span><span class="st">"x3"</span>, <span class="op">]</span>, diff <span class="op">=</span> <span class="va">xCondC1</span> <span class="op">-</span> <span class="va">x</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-28-1.png" width="100%"></p>
-<p>The mission is to find a formula that explains <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(x\mid c)</annotation></semantics></math> as a function of the simulation parameters!</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
