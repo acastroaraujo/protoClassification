@@ -1,4 +1,3 @@
-
 #' Generate random correlation matrices from the LKJ distribution
 #'
 #' Generates random correlation matrices from the LKJ (Lewandowski-Kurowicka-Joe)
@@ -41,7 +40,7 @@
 #' correlation matrices based on vines and extended onion method.
 #' Journal of multivariate analysis, 100(9), 1989-2001.
 #'
-#' @seealso \code{\link{dlkjcorr}}, \code{\link{transform_rho}}
+#' @seealso \code{\link{transform_rho}}
 #'
 rlkjcorr <- function(n, K, eta = 1) {
   stopifnot(is.numeric(K), K >= 2, K == as.integer(K))
@@ -77,7 +76,6 @@ rlkjcorr <- function(n, K, eta = 1) {
   }
   return(R)
 }
-
 
 
 #' Transform correlation matrix by setting specific correlations

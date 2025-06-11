@@ -52,5 +52,5 @@ correlation matrices based on vines and extended onion method.
 Journal of multivariate analysis, 100(9), 1989-2001.
 }
 \seealso{
-\code{\link{dlkjcorr}}, \code{\link{transform_rho}}
+\code{\link{transform_rho}}
 }
