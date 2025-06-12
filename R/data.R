@@ -1,23 +1,21 @@
 #' Make Correlated Binary Data
 #'
-#' Generates correlated binary data using the Gaussian copula approach.
-#' The function first generates multivariate normal data with specified
-#' correlations, then transforms it to binary data while preserving the
-#' correlation structure.
+#' Generates correlated binary data. The function first generates multivariate
+#' normal data with specified correlations, then transforms it to binary data while preserving the
+#' correlation structure. Apparently this is known as a "Gaussian copula" approach.
 #'
 #' @param marginals A numeric vector of marginal probabilities for each variable.
-#'   Must be between 0 and 1. If unnamed, variables will be named x1, x2, etc.
 #' @param rho A symmetric correlation matrix with dimensions matching the length
 #'   of \code{marginals}
-#' @param obs Integer. Number of observations (rows) to generate (default: 1000)
+#' @param obs Integer. Number of observations (rows) to generate.
 #'
-#' @return A \code{prototypeData} object (inherits from data.frame) containing:
+#' @return A \code{prototypeData} object containing:
 #'   \describe{
 #'     \item{Binary data}{A data frame with \code{obs} rows and \code{length(marginals)} columns}
 #'     \item{params attribute}{List containing the original marginals and correlation matrix}
 #'   }
 #'
-#' @export
+#' @seealso \code{\link{get_data_params}}, \code{\link{print.prototypeData}}
 #'
 #' @examples
 #' # Generate 8-dimensional correlated binary data
@@ -27,7 +25,8 @@
 #' out <- make_binary_data(marginals, rho)
 #' out
 #'
-#' @seealso \code{\link{get_params}}, \code{\link{print.prototypeData}}
+#' @export
+#'
 make_binary_data <- function(marginals, rho, obs = 1e3) {
   stopifnot(obs > 0)
   stopifnot(isSymmetric.matrix(rho))
@@ -58,9 +57,8 @@ make_binary_data <- function(marginals, rho, obs = 1e3) {
 #'
 #' @param x A prototypeData object created by \code{\link{make_binary_data}}
 #' @param digits Integer. Number of decimal places to display for numeric values (default: 2)
-#' @param ... (unused)
+#' @param ... Currently unused.
 #'
-#' @return invisibly returns the input object \code{x}
 #' @method print prototypeData
 #' @export
 #'
@@ -79,6 +77,7 @@ print.prototypeData <- function(x, digits = 2, ...) {
   cli::cli_text("")
   cli::cli_h3("Correlation Matrix:")
   print(round(params$rho, digits))
+  invisible(x)
 }
 
 
@@ -99,7 +98,7 @@ print.prototypeData <- function(x, digits = 2, ...) {
 #'
 #' @seealso \code{\link{make_binary_data}}, \code{\link{bivariateCondProb}}
 #'
-get_params <- function(x) {
+get_data_params <- function(x) {
   stopifnot(inherits(x, "prototypeData"))
   attr(x, "params", exact = TRUE)
 }
@@ -114,7 +113,7 @@ get_params <- function(x) {
 #' probabilities based on the correlation structure.
 #'
 #' @param parameters A list containing marginal probabilities and correlation matrix,
-#'   as returned by \code{\link{get_params}}.
+#'   as returned by \code{\link{get_data_params}}.
 #' @param kstar Integer. The index of the variable receiving all attention
 #'   (must be between 1 and the number of variables)
 #'
@@ -124,7 +123,7 @@ get_params <- function(x) {
 #'
 #' @export
 #'
-#' @seealso \code{\link{get_params}}, \code{\link{make_binary_data}}
+#' @seealso \code{\link{get_data_params}}, \code{\link{make_binary_data}}
 #'
 bivariateCondProb <- function(parameters, kstar) {
   stopifnot(names(parameters) == c("marginals", "rho"))
@@ -135,7 +134,6 @@ bivariateCondProb <- function(parameters, kstar) {
   pstar <- parameters$marginals[[kstar]]
 
   output <- purrr::map_dbl(seq_along(parameters$marginals), function(j) {
-
     rhojk <- correlations[[j]]
     pj <- parameters$marginals[[j]]
 

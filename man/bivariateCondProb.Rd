@@ -8,7 +8,7 @@ bivariateCondProb(parameters, kstar)
 }
 \arguments{
 \item{parameters}{A list containing marginal probabilities and correlation matrix,
-as returned by \code{\link{get_params}}.}
+as returned by \code{\link{get_data_params}}.}
 
 \item{kstar}{Integer. The index of the variable receiving all attention
 (must be between 1 and the number of variables)}
@@ -26,5 +26,5 @@ This uses the bivariate normal distribution to compute exact conditional
 probabilities based on the correlation structure.
 }
 \seealso{
-\code{\link{get_params}}, \code{\link{make_binary_data}}
+\code{\link{get_data_params}}, \code{\link{make_binary_data}}
 }

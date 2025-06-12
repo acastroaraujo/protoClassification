@@ -2,21 +2,55 @@
 % Please edit documentation in R/computations.R
 \name{conditionalProbsSample}
 \alias{conditionalProbsSample}
-\title{Get Posterior Draws of Conditional Probabilities}
+\title{Sample Conditional Probabilities from Prototype Model}
 \usage{
 conditionalProbsSample(x, type = c("features", "categories"), s = 500)
 }
 \arguments{
-\item{x}{a `prototype` object created by the `compute()` function.}
+\item{x}{A \code{prototypeComputation} object created by \code{\link{compute}}.}
 
-\item{type}{whether "features" `Pr(X|C)` or "categories" `Pr(C|X)`}
+\item{type}{Character string specifying the type of conditional probabilities:
+\describe{
+  \item{\code{"features"}}{Returns P(X|C) - probability of features given categories}
+  \item{\code{"categories"}}{Returns P(C|X) - probability of categories given feature values}
+}}
 
-\item{s}{number of draws to sample from the `.$probabilities` object created
-by the `compute()` function}
+\item{s}{Integer. Number of posterior draws to sample. Default is 500.
+Higher values provide more stable estimates but increase computation time.}
 }
 \value{
-a list of posterior draws
+The return structure depends on the \code{type} parameter:
+
+  For \code{type = "features"}:
+  A list with one element per category, where each element is an \code{s × K}
+  matrix of feature probabilities (K = number of features).
+
+  For \code{type = "categories"}:
+  A list with one element per feature, where each element is an
+  \code{s × n_categories × 2} array showing category probabilities for
+  feature values 0 and 1.
 }
 \description{
-Get Posterior Draws of Conditional Probabilities
+Generates posterior draws of conditional probabilities from a prototype
+computation, either P(X|C) (feature probabilities given categories) or
+P(C|X) (category probabilities given feature values). This function is
+primarily used internally by other functions but can be useful for
+uncertainty quantification.
+}
+\details{
+The function implements a sampling-based approach to estimate conditional
+probabilities:
+
+1. For each observation, sample category assignments based on the computed
+   membership probabilities
+2. Repeat this process \code{s} times to create multiple datasets
+3. Calculate conditional probabilities from each sampled dataset
+
+This approach captures the uncertainty in category assignments and provides
+a distribution of conditional probability estimates rather than point estimates.
+}
+\seealso{
+\code{\link{conditionalProbs}} for point estimates of conditional probabilities,
+\code{\link{summary.prototypeComputation}} for summary statistics,
+\code{\link{compute}} for creating \code{prototypeComputation} objects
 }

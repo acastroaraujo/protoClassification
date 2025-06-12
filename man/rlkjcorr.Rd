@@ -41,10 +41,6 @@ round(rho1, 2)
 rho_list <- rlkjcorr(n = 5, K = 3, eta = 4)
 lapply(rho_list, round, 2)
 
-# Compare different eta values
-rho_uniform <- rlkjcorr(1, 3, eta = 1)    # Uniform over correlations
-rho_concentrated <- rlkjcorr(1, 3, eta = 10) # Concentrated near identity
-
 }
 \references{
 Lewandowski, D., Kurowicka, D., & Joe, H. (2009). Generating random

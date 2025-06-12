@@ -2,28 +2,55 @@
 % Please edit documentation in R/computations.R
 \name{summary.prototypeComputation}
 \alias{summary.prototypeComputation}
-\title{Summary method for prototypeComputation objects}
+\title{Summary Method for Prototype Computation Objects}
 \usage{
 \method{summary}{prototypeComputation}(object, s = 500, ...)
 }
 \arguments{
-\item{object}{A prototypeComputation object created by \code{\link{compute}}}
+\item{object}{A \code{prototypeComputation} object created by \code{\link{compute}}.}
 
 \item{s}{Integer. Number of draws to sample from the probabilities for
-computing conditional probabilities (default: 500)}
+computing conditional probabilities. Default is 500. Higher values provide
+more stable estimates.}
 
-\item{...}{(unused)}
+\item{...}{Additional arguments (currently unused).}
 }
 \value{
-A summary.prototypeComputation object containing:
+A \code{summary.prototypeComputation} object containing:
   \describe{
-    \item{marginal}{List with marginal probabilities for categories and features}
-    \item{conditional}{List with conditional probabilities for categories and features}
+    \item{\code{marginal}}{List with marginal probabilities:
+      \itemize{
+        \item \code{categories}: Vector of category marginal probabilities
+        \item \code{features}: Vector of feature marginal probabilities
+      }
+    }
+    \item{\code{conditional}}{List with conditional probabilities:
+      \itemize{
+        \item \code{categories}: P(C|X) for feature values 0 and 1
+        \item \code{features}: P(X|C) matrix
+      }
+    }
   }
 }
 \description{
-Computes and returns summary statistics for a prototypeComputation object,
-including marginal and conditional probabilities for both categories and features.
+Computes and returns comprehensive summary statistics for a
+\code{prototypeComputation} object, including marginal and conditional
+probabilities for both categories and features. This provides a complete
+statistical overview of the prototype model results.
+}
+\details{
+The summary provides four key probability distributions:
+
+\itemize{
+  \item \strong{Category Marginals}: Overall probability of each category
+    across all observations
+  \item \strong{Feature Marginals}: Overall probability of each feature
+    being 1 across all observations
+  \item \strong{Conditional Features}: P(X_k = 1 | C_j) for each feature k
+    and category j
+  \item \strong{Conditional Categories}: P(C_j | X_k = 0) and P(C_j | X_k = 1)
+    for each category j and feature k
+}
 }
 \seealso{
 \code{\link{conditionalProbs}}, \code{\link{compute}}

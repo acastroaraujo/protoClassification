@@ -2,127 +2,71 @@
 % Please edit documentation in R/compositionalEffects.R
 \name{compositionalEffect}
 \alias{compositionalEffect}
-\title{Compare Compositional Effects Between Two Prototype Computations}
+\title{Compare Compositional Effects by Modifying Model Parameters}
 \usage{
-compositionalEffect(reference, comparison)
+compositionalEffect(baseline, ..., s = 1000)
 }
 \arguments{
-\item{reference}{A prototypeComputation object, as created by the \code{\link{compute}}
-function. This serves as the baseline or reference condition for comparison.}
+\item{baseline}{A \code{prototypeComputation} object, as created by
+\code{\link{compute}}. This serves as the baseline condition from which
+specific parameters will be modified for comparison.}
 
-\item{comparison}{A prototypeComputation object, as created by the \code{\link{compute}}
-function. This represents the alternative condition to be compared against
-the reference.}
+\item{...}{Named arguments specifying the parameters to modify. Must be one
+or more of:
+\describe{
+  \item{\code{w}}{A K-sized numeric vector of attention weights. Must sum
+    to 1 and all values must be non-negative.}
+  \item{\code{g}}{A numeric vector of sensitivity parameters, one per
+    prototype. All values must be non-negative (>= 0).}
+  \item{\code{prototypes}}{A list of prototype vectors. Each prototype
+    must be a binary vector of the same length as the number of features
+    in the baseline data.}
+}
+All other parameters (data, distance type) are inherited from the baseline.}
+
+\item{s}{Integer. Number of draws to sample for probability estimation.
+Default is 1000. Higher values provide more precision but increase
+computation time.}
 }
 \value{
-A list containing two data frames with identical dimensions:
+A \code{compositionalEffect} object (inherits from \code{list})
+  containing two data frames:
   \describe{
-    \item{diff}{Data frame of probability differences (comparison - reference).
-      Positive values indicate higher probabilities in the comparison condition,
-      negative values indicate lower probabilities.}
-    \item{rr}{Data frame of relative risk ratios (comparison / reference).
-      Values > 1 indicate higher relative probability in comparison,
-      values < 1 indicate lower relative probability, and values = 1
-      indicate no change.}
+    \item{\code{diff}}{Data frame of probability differences
+      (comparison - baseline). Positive values indicate higher probabilities
+      in the modified condition, negative values indicate lower probabilities.}
+    \item{\code{rr}}{Data frame of relative risk ratios
+      (comparison / baseline). Values > 1 indicate higher relative probability
+      in the modified condition, values < 1 indicate lower relative probability,
+      and values = 1 indicate no change.}
   }
-  Both data frames have the same structure as the conditional feature
-  probabilities from the summary output, with rows representing categories
-  and columns representing features.
+  Both data frames have rows representing categories and columns representing
+  features.
 }
 \description{
 Computes the difference in conditional probabilities and relative risk ratios
-between two prototype computations. This function is useful for analyzing how
-changes in prototype specifications (attention weights, sensitivity parameters,
-or prototype definitions) affect the resulting probability distributions and
-category assignments.
+between a baseline prototype computation and a modified version where specific
+parameters are changed. This function provides a streamlined way to analyze
+how changes in attention weights, sensitivity parameters, or prototype definitions
+affect the resulting probability distributions and category assignments.
 }
 \details{
-The function extracts conditional feature probabilities P(X|C) from both
-prototype computations using \code{\link{summary}} with s = 1000 samples.
-It then computes:
+The function creates a modified prototype computation by:
+\enumerate{
+  \item Taking the baseline computation's data and parameters
+  \item Replacing specified parameters with the new values provided in \code{...}
+  \item Computing a new prototype analysis with \code{\link{compute}}
+  \item Comparing conditional feature probabilities P(X|C) between baseline and modified versions
+}
+
+The comparison metrics computed are:
 \itemize{
-  \item \strong{Difference}: comparison_prob - reference_prob
-  \item \strong{Relative Risk}: comparison_prob / reference_prob
+  \item \strong{Difference}: modified_prob - baseline_prob
+  \item \strong{Relative Risk}: modified_prob / baseline_prob
 }
 
-These metrics help identify:
-\itemize{
-  \item Which features show the largest absolute changes (diff)
-  \item Which features show the largest proportional changes (rr)
-  \item How prototype modifications affect category-feature associations
-}
-}
-\note{
-Both input objects must be valid prototypeComputation objects with the same
-underlying data structure (same number of features and categories) for
-meaningful comparisons. The function uses 1000 samples for probability
-estimation, which provides good precision for most applications.
-}
-\examples{
-\dontrun{
-# Create sample data
-data <- make_binary_data(marginals = c(0.3, 0.7, 0.5, 0.4),
-                        rho = diag(4), obs = 1000)
-
-# Define prototypes
-prototypes <- list(
-  P1 = c(1, 0, 1, 0),
-  P2 = c(0, 1, 0, 1)
-)
-
-# Reference computation with equal attention weights
-reference <- compute(
-  data = data,
-  prototypes = prototypes,
-  w = c(0.25, 0.25, 0.25, 0.25),  # Equal attention
-  g = c(2, 2)
-)
-
-# Comparison computation with focused attention on first two features
-comparison <- compute(
-  data = data,
-  prototypes = prototypes,
-  w = c(0.4, 0.4, 0.1, 0.1),      # Focused attention
-  g = c(2, 2)
-)
-
-# Analyze compositional effects
-effects <- compositionalEffect(reference, comparison)
-
-# View probability differences
-print("Probability Differences (Comparison - Reference):")
-print(round(effects$diff, 3))
-
-# View relative risk ratios
-print("Relative Risk Ratios (Comparison / Reference):")
-print(round(effects$rr, 3))
-
-# Identify features with largest changes
-max_diff <- which(abs(effects$diff) == max(abs(effects$diff)), arr.ind = TRUE)
-max_rr <- which(abs(log(effects$rr)) == max(abs(log(effects$rr))), arr.ind = TRUE)
-
-cat("Feature with largest absolute difference:",
-    colnames(effects$diff)[max_diff[2]],
-    "in category", rownames(effects$diff)[max_diff[1]], "\n")
-
-cat("Feature with largest relative change:",
-    colnames(effects$rr)[max_rr[2]],
-    "in category", rownames(effects$rr)[max_rr[1]], "\n")
-}
-
-# Simplified example showing the concept
-\dontrun{
-# Compare effect of different sensitivity parameters
-low_sensitivity <- compute(data, prototypes, w, g = c(1, 1))
-high_sensitivity <- compute(data, prototypes, w, g = c(5, 5))
-
-sensitivity_effects <- compositionalEffect(low_sensitivity, high_sensitivity)
-
-# Higher sensitivity should lead to more extreme probability assignments
-print("Effect of increasing sensitivity:")
-print(round(sensitivity_effects$diff, 3))
-}
-
+This approach allows for systematic sensitivity analysis by modifying one
+parameter at a time while holding others constant.
 }
 \seealso{
 \code{\link{compute}} for creating prototypeComputation objects,

@@ -1,4 +1,8 @@
-#' Calculate distances and similarity from features to prototype
+#' Calculate distances and similarity.
+#'
+#' Calculate distances and similarity from features to prototype.
+#' The \code{\link{compute}} function does this and more when you have
+#' multiple prototypes.
 #'
 #' @param P a K-sized vector of binary features (i.e., the prototype)
 #' @param w a K-sized vector of attention weights
@@ -18,18 +22,63 @@ calculateDistSim <- function(data, P, w, g, r = 1) {
   data.frame(distance, similarity)
 }
 
-#' Calculate distance, similarity, and membership probabilities
+#' Calculate Distances and Similarities to Multiple Prototypes
 #'
-#' @param data a data frame, as returned by the `make_data()` function
-#' @param prototypes a list of prototypes, i.e., K-sized vectors of binary
-#'    features.
-#' @param w a K-sized vector of attention weights
-#' @param g a sensitivity parameter, a number larger than zero
-#' @param r the type of distance, 1 for Manhattan, 2 for Euclidean
-#'  (irrelevant when working with binary data).
+#' Calculates distances and similarity scores from a set of observations to a
+#' single prototype using weighted distance metrics. This function implements
+#' the core distance and similarity calculations used in prototype-based
+#' classification models.
 #'
-#' @returns A `prototype` object. A list of probabilities, similarities,
-#'  distances, and the data used to calculate them.
+#' @param data A data frame of binary features (0s and 1s), as returned by
+#'   \code{\link{make_binary_data}}. Each row represents an observation and
+#'   each column represents a binary feature.
+#' @param prototypes A list of prototype vectors. Each must be the same length
+#'   as the number of columns in \code{data} and contain only binary values (0 or 1).
+#' @param w A numeric vector of attention weights, one for each feature. Must be:
+#'   \describe{
+#'     \item{Length}{Equal to \code{length(P)} and \code{ncol(data)}}
+#'     \item{Values}{Non-negative and sum to 1}
+#'   }
+#' @param g A numeric sensitivity parameter controlling the steepness of the
+#'   similarity function. Must be non-negative (>= 0). Higher values make the
+#'   similarity function more sensitive to distances.
+#' @param r Integer specifying the distance metric type. Note that this is irrelevant when working with binary data.
+#'   \describe{
+#'     \item{1}{Manhattan distance (L1 norm)}
+#'     \item{2}{Euclidean distance (L2 norm)}
+#'   }
+#'
+#' @return A data frame with \code{nrow(data)} rows and two columns:
+#'   \describe{
+#'     \item{\code{distance}}{Numeric vector of weighted distances from each
+#'       observation to the prototype}
+#'     \item{\code{similarity}}{Numeric vector of similarity scores, computed as
+#'       \code{exp(-g * distance)}}
+#'   }
+#'
+#' @return A \code{prototypeComputation} object containing:
+#'   \describe{
+#'     \item{\code{distance}}{Data frame of distances from each observation to
+#'       each prototype}
+#'     \item{\code{similarity}}{Data frame of similarity scores for each
+#'       observation to each prototype}
+#'     \item{\code{probabilities}}{Data frame of category membership probabilities}
+#'     \item{\code{data}}{The original input data}
+#'   }
+#'   The object also stores the input parameters as attributes.
+#'
+#' @details
+#' The function implements a prototype-based categorization model where:
+#'
+#' 1. **Distance Calculation**: For each observation \eqn{x} and prototype \eqn{P_j}:
+#'    \deqn{d(x, P_j) = \sum_{k=1}^{K} w_k |x_k - P_{j,k}|^r}
+#'
+#' 2. **Similarity Calculation**:
+#'    \deqn{s(x, P_j) = \exp(-g_j \cdot d(x, P_j))}
+#'
+#' 3. **Probability Calculation**:
+#'    \deqn{P(C_j|x) = \frac{s(x, P_j)}{\sum_{i=1}^{n} s(x, P_i)}}
+#'
 #' @export
 #'
 compute <- function(data, prototypes, w, g, r = 1L) {
@@ -82,10 +131,11 @@ compute <- function(data, prototypes, w, g, r = 1L) {
 #' the data structure, prototypes, distance type, sensitivity parameters,
 #' attention weights, and marginal probabilities.
 #'
-#' @param x a prototypeComputation object created by \code{\link{compute}}
-#' @param ... (unused)
+#' @param x A \code{prototypeComputation} object created by \code{\link{compute}}.
+#' @param ... Additional arguments passed to print methods (currently unused).
 #'
-#' @return Invisibly returns the input object \code{x}
+#' @return Invisibly returns the input object \code{x}.
+#'
 #' @method print prototypeComputation
 #' @export
 #'
@@ -126,11 +176,29 @@ print.prototypeComputation <- function(x, ...) {
   invisible(x)
 }
 
-#' Consolidate computation into a single data frame
+#' Consolidate Prototype Computation Results
 #'
-#' @param x a `prototype` object created by the `compute()` function.
+#' Combines all components of a prototype computation (probabilities, similarities,
+#' distances, and original data) into a single data frame for easier analysis
+#' and export.
 #'
-#' @returns a data frame
+#' @param x A \code{prototypeComputation} object created by \code{\link{compute}}.
+#'
+#' @return A data frame containing:
+#'   \describe{
+#'     \item{Probability columns}{Named \code{prob1}, \code{prob2}, etc.,
+#'       representing category membership probabilities}
+#'     \item{Similarity columns}{Named \code{sim1}, \code{sim2}, etc.,
+#'       representing similarity scores to each prototype}
+#'     \item{Distance columns}{Named \code{dist1}, \code{dist2}, etc.,
+#'       representing distances to each prototype}
+#'     \item{Feature columns}{Original binary feature data}
+#'   }
+#'   The number of probability, similarity, and distance columns equals the
+#'   number of prototypes.
+#'
+#' @seealso \code{\link{compute}} for creating \code{prototypeComputation} object.
+#'
 #' @export
 #'
 consolidate <- function(x) {
@@ -153,14 +221,51 @@ consolidate <- function(x) {
 }
 
 
-#' Get Posterior Draws of Conditional Probabilities
+#' Sample Conditional Probabilities from Prototype Model
 #'
-#' @param x a `prototype` object created by the `compute()` function.
-#' @param type whether "features" `Pr(X|C)` or "categories" `Pr(C|X)`
-#' @param s number of draws to sample from the `.$probabilities` object created
-#'  by the `compute()` function
+#' Generates posterior draws of conditional probabilities from a prototype
+#' computation, either P(X|C) (feature probabilities given categories) or
+#' P(C|X) (category probabilities given feature values). This function is
+#' primarily used internally by other functions but can be useful for
+#' uncertainty quantification.
 #'
-#' @returns a list of posterior draws
+#' @param x A \code{prototypeComputation} object created by \code{\link{compute}}.
+#' @param type Character string specifying the type of conditional probabilities:
+#'   \describe{
+#'     \item{\code{"features"}}{Returns P(X|C) - probability of features given categories}
+#'     \item{\code{"categories"}}{Returns P(C|X) - probability of categories given feature values}
+#'   }
+#' @param s Integer. Number of posterior draws to sample. Default is 500.
+#'   Higher values provide more stable estimates but increase computation time.
+#'
+#' @return The return structure depends on the \code{type} parameter:
+#'
+#'   For \code{type = "features"}:
+#'   A list with one element per category, where each element is an \code{s × K}
+#'   matrix of feature probabilities (K = number of features).
+#'
+#'   For \code{type = "categories"}:
+#'   A list with one element per feature, where each element is an
+#'   \code{s × n_categories × 2} array showing category probabilities for
+#'   feature values 0 and 1.
+#'
+#' @details
+#' The function implements a sampling-based approach to estimate conditional
+#' probabilities:
+#'
+#' 1. For each observation, sample category assignments based on the computed
+#'    membership probabilities
+#' 2. Repeat this process \code{s} times to create multiple datasets
+#' 3. Calculate conditional probabilities from each sampled dataset
+#'
+#' This approach captures the uncertainty in category assignments and provides
+#' a distribution of conditional probability estimates rather than point estimates.
+#'
+#' @seealso
+#' \code{\link{conditionalProbs}} for point estimates of conditional probabilities,
+#' \code{\link{summary.prototypeComputation}} for summary statistics,
+#' \code{\link{compute}} for creating \code{prototypeComputation} objects
+#'
 #' @export
 #'
 conditionalProbsSample <- function(
@@ -216,19 +321,58 @@ conditionalProbsSample <- function(
   return(output)
 }
 
-#' Get Conditional Probabilities
+#' Calculate Conditional Probabilities from Prototype Model
 #'
-#' @param x a `prototype` object created by the `compute()` function.
-#' @param type whether "features" `Pr(X|C)` or "categories" `Pr(C|X)`
-#' @param s number of draws to sample from the `.$probabilities` object created
-#'  by the `compute()` function
+#' Computes point estimates of conditional probabilities from a prototype
+#' computation, either P(X|C) (feature probabilities given categories) or
+#' P(C|X) (category probabilities given feature values). This function
+#' provides the expected values of the conditional probability distributions.
 #'
-#' @returns a list of conditional probabilities
+#' @param x A \code{prototypeComputation} object created by \code{\link{compute}}.
+#' @param type Character string specifying the type of conditional probabilities:
+#'   \describe{
+#'     \item{\code{"features"}}{Returns P(X|C) - probability of features given categories}
+#'     \item{\code{"categories"}}{Returns P(C|X) - probability of categories given feature values}
+#'   }
+#' @param s Integer. Number of posterior draws used for sampling-based estimation.
+#'   Default is 500. Results are averaged across all draws to provide point estimates.
+#'
+#' @return The return structure depends on the \code{type} parameter:
+#'
+#'   For \code{type = "features"}:
+#'   A data frame with categories as rows and features as columns, where each cell
+#'   contains P(X_k = 1 | C_j). To get P(X_k = 0 | C_j) you can calculate 1 - "data frame".
+#'
+#'   For \code{type = "categories"}:
+#'   A list with two elements:
+#'   \describe{
+#'     \item{\code{Xk=0}}{Matrix of P(C_j | X_k = 0) for each feature k and category j}
+#'     \item{\code{Xk=1}}{Matrix of P(C_j | X_k = 1) for each feature k and category j}
+#'   }
+#'
+#' @details
+#' This function provides point estimates by taking the mean of the sampling
+#' distributions generated by \code{\link{conditionalProbsSample}}. The conditional
+#' probabilities represent:
+#'
+#' \itemize{
+#'   \item \strong{P(X|C)}: Given that an observation belongs to category C,
+#'     what is the probability that feature X has value 1?
+#'   \item \strong{P(C|X)}: Given that feature X has a specific value (0 or 1),
+#'     what is the probability that the observation belongs to category C?
+#' }
+#'
+#' @seealso
+#' \code{\link{conditionalProbsSample}} for full sampling distributions,
+#' \code{\link{summary.prototypeComputation}} for comprehensive summaries,
+#' \code{\link{compute}} for creating \code{prototypeComputation} objects
+#'
 #' @export
 #'
 conditionalProbs <- function(x, type = c("features", "categories"), s = 500) {
   type <- match.arg(type)
   output <- conditionalProbsSample(x, type, s)
+
   if (type == "categories") {
     out1 <- purrr::map(output, function(m) {
       data.frame(t(colMeans(m[,, 1])))
@@ -242,26 +386,53 @@ conditionalProbs <- function(x, type = c("features", "categories"), s = 500) {
   }
   if (type == "features") {
     output <- purrr::map(output, colMeans)
-    output <- t(as.data.frame(output))
+    output <- as.data.frame(t(as.data.frame(output)))
   }
   return(output)
 }
 
-#' Summary method for prototypeComputation objects
+#' Summary Method for Prototype Computation Objects
 #'
-#' Computes and returns summary statistics for a prototypeComputation object,
-#' including marginal and conditional probabilities for both categories and features.
+#' Computes and returns comprehensive summary statistics for a
+#' \code{prototypeComputation} object, including marginal and conditional
+#' probabilities for both categories and features. This provides a complete
+#' statistical overview of the prototype model results.
 #'
-#' @param object A prototypeComputation object created by \code{\link{compute}}
+#' @param object A \code{prototypeComputation} object created by \code{\link{compute}}.
 #' @param s Integer. Number of draws to sample from the probabilities for
-#'   computing conditional probabilities (default: 500)
-#' @param ... (unused)
+#'   computing conditional probabilities. Default is 500. Higher values provide
+#'   more stable estimates.
+#' @param ... Additional arguments (currently unused).
 #'
-#' @return A summary.prototypeComputation object containing:
+#' @return A \code{summary.prototypeComputation} object containing:
 #'   \describe{
-#'     \item{marginal}{List with marginal probabilities for categories and features}
-#'     \item{conditional}{List with conditional probabilities for categories and features}
+#'     \item{\code{marginal}}{List with marginal probabilities:
+#'       \itemize{
+#'         \item \code{categories}: Vector of category marginal probabilities
+#'         \item \code{features}: Vector of feature marginal probabilities
+#'       }
+#'     }
+#'     \item{\code{conditional}}{List with conditional probabilities:
+#'       \itemize{
+#'         \item \code{categories}: P(C|X) for feature values 0 and 1
+#'         \item \code{features}: P(X|C) matrix
+#'       }
+#'     }
 #'   }
+#'
+#' @details
+#' The summary provides four key probability distributions:
+#'
+#' \itemize{
+#'   \item \strong{Category Marginals}: Overall probability of each category
+#'     across all observations
+#'   \item \strong{Feature Marginals}: Overall probability of each feature
+#'     being 1 across all observations
+#'   \item \strong{Conditional Features}: P(X_k = 1 | C_j) for each feature k
+#'     and category j
+#'   \item \strong{Conditional Categories}: P(C_j | X_k = 0) and P(C_j | X_k = 1)
+#'     for each category j and feature k
+#' }
 #'
 #' @method summary prototypeComputation
 #' @export
@@ -269,9 +440,10 @@ conditionalProbs <- function(x, type = c("features", "categories"), s = 500) {
 #' @seealso \code{\link{conditionalProbs}}, \code{\link{compute}}
 #'
 summary.prototypeComputation <- function(object, s = 500, ...) {
+
   categories <- conditionalProbs(object, "categories", s)
   cat_marginals <- colMeans(object$probabilities)
-  features <- conditionalProbs(object, "features", s)
+  features <- conditionalProbs(object, "features", s) ## !!!!! change this to data.frame()
   feature_marginals <- colMeans(object$data)
 
   output <- list(
@@ -282,16 +454,46 @@ summary.prototypeComputation <- function(object, s = 500, ...) {
   structure(output, class = c("summary.prototypeComputation", class(output)))
 }
 
-#' Print method for summary.prototypeComputation objects
+#' Print Summary Statistics for Prototype Computation Objects
 #'
-#' Prints a formatted display of summary statistics from a prototypeComputation
-#' object, showing marginal and conditional probabilities for categories and features.
+#' Displays a formatted summary of prototype-based classification results,
+#' showing both marginal and conditional probability distributions for
+#' categories and features. This method provides a comprehensive overview
+#' of how the prototype model distributes probability mass across categories
+#' and features.
 #'
-#' @param x A summary.prototypeComputation object created by
-#'   \code{\link{summary.prototypeComputation}}
-#' @param ... (unused)
+#' @param x A \code{summary.prototypeComputation} object created by
+#'   \code{\link{summary.prototypeComputation}}.
+#' @param ... Additional arguments passed to print methods (currently unused).
 #'
-#' @return Invisibly returns the input object \code{x}
+#' @return Invisibly returns the input object \code{x} unchanged. The function
+#'   is called primarily for its side effect of printing formatted output.
+#'
+#' @details
+#' The printed output is organized into two main sections:
+#'
+#' \strong{Categories Section:}
+#' \itemize{
+#'   \item \emph{Marginals}: Overall probability of assignment to each category
+#'     across all observations, computed as \code{colMeans(object$probabilities)}
+#'   \item \emph{Conditionals}: Two sub-lists showing P(C|X) - the probability
+#'     of each category given feature values:
+#'     \itemize{
+#'       \item \code{Xk=0}: Category probabilities when each feature equals 0
+#'       \item \code{Xk=1}: Category probabilities when each feature equals 1
+#'     }
+#' }
+#'
+#' \strong{Features Section:}
+#' \itemize{
+#'   \item \emph{Marginals}: Overall probability that each feature equals 1
+#'     across all observations, computed as \code{colMeans(object$data)}
+#'   \item \emph{Conditionals}: The probability that each feature equals 1
+#'     given membership in each category, P(X|C).
+#' }
+#'
+#' All probability values are rounded to 3 decimal places for readability.
+#'
 #' @method print summary.prototypeComputation
 #' @export
 #'
@@ -306,4 +508,5 @@ print.summary.prototypeComputation <- function(x, ...) {
   print(round(x$marginal$features, 3))
   cli::cli_h3("Conditionals:")
   print(round(x$conditional$features, 3))
+  invisible(x)
 }

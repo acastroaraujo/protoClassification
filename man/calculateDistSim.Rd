@@ -2,7 +2,7 @@
 % Please edit documentation in R/computations.R
 \name{calculateDistSim}
 \alias{calculateDistSim}
-\title{Calculate distances and similarity from features to prototype}
+\title{Calculate distances and similarity.}
 \usage{
 calculateDistSim(data, P, w, g, r = 1)
 }
@@ -21,5 +21,7 @@ calculateDistSim(data, P, w, g, r = 1)
 a data frame with distance and similarity
 }
 \description{
-Calculate distances and similarity from features to prototype
+Calculate distances and similarity from features to prototype.
+The \code{\link{compute}} function does this and more when you have
+multiple prototypes.
 }

@@ -11,10 +11,7 @@
 
 \item{digits}{Integer. Number of decimal places to display for numeric values (default: 2)}
 
-\item{...}{(unused)}
-}
-\value{
-invisibly returns the input object \code{x}
+\item{...}{Currently unused.}
 }
 \description{
 Displays a formatted summary of a prototypeData object, showing the

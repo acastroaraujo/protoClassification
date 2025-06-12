@@ -2,27 +2,69 @@
 % Please edit documentation in R/computations.R
 \name{compute}
 \alias{compute}
-\title{Calculate distance, similarity, and membership probabilities}
+\title{Calculate Distances and Similarities to Multiple Prototypes}
 \usage{
 compute(data, prototypes, w, g, r = 1L)
 }
 \arguments{
-\item{data}{a data frame, as returned by the `make_data()` function}
+\item{data}{A data frame of binary features (0s and 1s), as returned by
+\code{\link{make_binary_data}}. Each row represents an observation and
+each column represents a binary feature.}
 
-\item{prototypes}{a list of prototypes, i.e., K-sized vectors of binary
-features.}
+\item{prototypes}{A list of prototype vectors. Each must be the same length
+as the number of columns in \code{data} and contain only binary values (0 or 1).}
 
-\item{w}{a K-sized vector of attention weights}
+\item{w}{A numeric vector of attention weights, one for each feature. Must be:
+\describe{
+  \item{Length}{Equal to \code{length(P)} and \code{ncol(data)}}
+  \item{Values}{Non-negative and sum to 1}
+}}
 
-\item{g}{a sensitivity parameter, a number larger than zero}
+\item{g}{A numeric sensitivity parameter controlling the steepness of the
+similarity function. Must be non-negative (>= 0). Higher values make the
+similarity function more sensitive to distances.}
 
-\item{r}{the type of distance, 1 for Manhattan, 2 for Euclidean
-(irrelevant when working with binary data).}
+\item{r}{Integer specifying the distance metric type. Note that this is irrelevant when working with binary data.
+\describe{
+  \item{1}{Manhattan distance (L1 norm)}
+  \item{2}{Euclidean distance (L2 norm)}
+}}
 }
 \value{
-A `prototype` object. A list of probabilities, similarities,
- distances, and the data used to calculate them.
+A data frame with \code{nrow(data)} rows and two columns:
+  \describe{
+    \item{\code{distance}}{Numeric vector of weighted distances from each
+      observation to the prototype}
+    \item{\code{similarity}}{Numeric vector of similarity scores, computed as
+      \code{exp(-g * distance)}}
+  }
+
+A \code{prototypeComputation} object containing:
+  \describe{
+    \item{\code{distance}}{Data frame of distances from each observation to
+      each prototype}
+    \item{\code{similarity}}{Data frame of similarity scores for each
+      observation to each prototype}
+    \item{\code{probabilities}}{Data frame of category membership probabilities}
+    \item{\code{data}}{The original input data}
+  }
+  The object also stores the input parameters as attributes.
 }
 \description{
-Calculate distance, similarity, and membership probabilities
+Calculates distances and similarity scores from a set of observations to a
+single prototype using weighted distance metrics. This function implements
+the core distance and similarity calculations used in prototype-based
+classification models.
+}
+\details{
+The function implements a prototype-based categorization model where:
+
+1. **Distance Calculation**: For each observation \eqn{x} and prototype \eqn{P_j}:
+   \deqn{d(x, P_j) = \sum_{k=1}^{K} w_k |x_k - P_{j,k}|^r}
+
+2. **Similarity Calculation**:
+   \deqn{s(x, P_j) = \exp(-g_j \cdot d(x, P_j))}
+
+3. **Probability Calculation**:
+   \deqn{P(C_j|x) = \frac{s(x, P_j)}{\sum_{i=1}^{n} s(x, P_i)}}
 }

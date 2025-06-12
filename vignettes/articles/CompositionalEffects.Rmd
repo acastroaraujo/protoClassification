@@ -1,5 +1,7 @@
 ---
 title: "Compositional Effects"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -9,17 +11,48 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
+library(tidyverse)
 library(protoClassification)
+
+theme_set(
+  theme_light(base_family = "Avenir Next Condensed") +
+    theme(strip.background = element_rect(fill = "#4C4C4C"))
+)
+
+plotProbChange <- function(x) {
+  x |>
+    rownames_to_column("C") |>
+    pivot_longer(!C, names_to = "x", values_to = "probChange") |>
+    mutate(x = factor(x, levels = paste0("x", 1:K))) |>
+    ggplot(aes(x, probChange)) +
+    geom_segment(aes(yend = probChange, y = 0)) +
+    geom_point() +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    facet_wrap(~C)
+}
+
+plotRR <- function(x) {
+  x |>
+    rownames_to_column("C") |>
+    pivot_longer(!C, names_to = "x", values_to = "RR") |>
+    mutate(x = factor(x, levels = paste0("x", 1:K))) |>
+    ggplot(aes(x, RR)) +
+    geom_segment(aes(yend = RR, y = 1)) +
+    geom_point() +
+    geom_hline(yintercept = 1, linetype = "dashed") +
+    facet_wrap(~C)
+}
 ```
 
 Our main goal is to compare different probabilities across different parameters values. In particular, we can measure the "compositional effects" that result from different parameter values by keeping track of these conditional probabilities: $\Pr(\mathbf{x} \mid C, \Omega)$, where $\Omega$ is a short-hand way of referring to all parameters in the prototype model.
 
-Here I provide a few examples.
+In this notebook I provide a few examples of how to do this.
+
+**First step, simulate data.**
 
 ```{r}
-set.seed(9)
-# Basic Workflow ----
+set.seed(2)
 
 K <- 10
 obs <- 1e3
@@ -30,8 +63,13 @@ mu <- rbeta(K, 2, 2)
 rho <- rlkjcorr(1, K, eta = 1)
 
 sim_data <- make_binary_data(mu, rho, obs)
+sim_data
+```
 
-# Prototype Parameters ----
+**Second step, create a baseline Prototype Model.**
+
+```{r}
+set.seed(2)
 
 w <- runif(K)
 w <- w / sum(w)
@@ -45,89 +83,264 @@ prototypes <- list(
 
 # Compute ----
 
-out <- compute(sim_data, prototypes, w, g)
-probs <- summary(out, s = 1e3)
+baseline <- compute(sim_data, prototypes, w, g)
+baseline
 ```
 
-**Changing** $\gamma$
+**Third step, decide which parameter to vary.**
+
+Ok, so here is where the package becomes interesting.
+
+## Changing $\gamma$
+
+Suppose we want to change $\gamma$ to make the second prototype more inclusive, this means that gamma is lower.
 
 ```{r}
-# This should make the second category more inclusive
-new_out <- compute(sim_data, prototypes, w, g = c(10, 5))
-new_probs <- summary(new_out, s = 1e3)
+effects <- compositionalEffect(baseline, g = c(10, 5))
+effects
 ```
 
-This should increase the marginal probabilities of the second category.
+As expected the category marginal probabilities have increased for $C_2$.
+
+We can then plot the compositional effects in one of two ways.
+
+-   Difference in Probabilities.
+
+    $$
+    \Delta P = \Pr(X_k = x_k \mid C = c, \Omega^1) - \Pr(X_k = x_k \mid C = c, \Omega^0)
+    $$
+
+-   Relative Risk
+
+    $$
+    RR = \frac{\Pr(X_k = x_k \mid C = c, \Omega^1)}{\Pr(X_k = x_k \mid C = c, \Omega^0)}
+    $$
+
+*Difference in probabilities.*
 
 ```{r}
-probs$marginal$categories
-new_probs$marginal$categories
+plotProbChange(effects$diff)
 ```
 
-And these are the compositional effects:
+*Relative risk ratios.*
 
 ```{r}
-probs$conditional$features
-new_probs$conditional$features
-
-# diff-in-prob
-new_probs$conditional$features - probs$conditional$features
-# risk ratio
-new_probs$conditional$features / probs$conditional$features
+plotRR(effects$rr)
 ```
 
-**Changing the "attention weights"**
-
-1st, we can make the attention weights more selective, meaning that classification becomes more rule-like.
+For reference, here are the attention weights and the prototypes used in the baseline model:
 
 ```{r}
-w2 <- temperature(w, temp = 1 / 4) # cf. "temperature sampling"
-w ## original wegihts
-w2 ## new weights
-
-new_out <- compute(sim_data, prototypes, w = w2, g)
-new_probs <- summary(new_out, s = 1e3)
+round(attr(baseline, "w"), 3)
+attr(baseline, "prototypes")
 ```
 
-The change in compositional effects should make it such that the new $p(x_k \mid c)$ are very high when $x_k$ is highly weighted.
+*Conclusion. This is super interesting, the result is that the size of category 2 is larger, but the compositional effects are positive across most features. These is intuitive, category 1 becomes more prototypical, category 2 becomes less prototypical, but I was not expecting that to imply these compositional effects. Hindsight is 20/20!*
+
+*If we were gonna increase the size of category 1 instead (by changing* $\gamma$ *accordingly, then the compositional effects would be negative across most features. To do this, just set the new* $\gamma$ *parameter to `g = c(5, 10)`*.
+
+## Changing $w$
+
+Here we use the `temperature()` function to transform the weights into a simple rule.
 
 ```{r}
-probs$conditional$features
-new_probs$conditional$features
-
-# diff-in-prob
-new_probs$conditional$features - probs$conditional$features
-# risk ratio
-new_probs$conditional$features / probs$conditional$features
+temperature(w, 0)
+effects <- compositionalEffect(baseline, w = temperature(w, 0))
+effects
 ```
 
-At the extreme, when attention is placed exclusively on one feature.
-
-We should expect $p(x_k \mid c)$ to be 1.
+As we've seen before, the new marginal distribution of $C_1$ is simply the marginal distribution of the feature with exclusive attention.
 
 ```{r}
-w2 <- vector("double", length(w)) # all attention on dimension 3
-w2[[3]] <- 1
-w2
-
-new_out <- compute(sim_data, prototypes, w = w2, g)
-new_probs <- summary(new_out, s = 1e3)
-
-new_probs$conditional$features
+colMeans(sim_data)
 ```
 
-Furthermore, marginal probability of $c_1$ should converge to the marginal probability of that feature with exclusive attention.
+We can then plot the compositional effects.
+
+*Difference in probabilities.*
 
 ```{r}
-new_probs$marginal
+plotProbChange(effects$diff)
 ```
 
-Compositional Effects:
+*Relative risk ratios.*
 
 ```{r}
-# diff-in-prob
-new_probs$conditional$features - probs$conditional$features
+plotRR(effects$rr)
+```
 
-# risk ratio
-new_probs$conditional$features / probs$conditional$features
+*See the Correlations notebook for an attempt of an explanation of what's going on here. In short, these changes reflect the underlying correlation structure used to make the data. But this is still a bit mysterious to me.*
+
+Alternatively, we can make the attention weights *less* selective by making the distribution of the weights more uniform.
+
+```{r}
+temperature(w, 4)
+effects <- compositionalEffect(baseline, w = temperature(w, 4))
+effects
+```
+
+We can then plot the compositional effects.
+
+*Difference in probabilities.*
+
+```{r}
+plotProbChange(effects$diff)
+```
+
+*Relative risk ratios.*
+
+```{r}
+plotRR(effects$rr)
+```
+
+## Adding a third category
+
+Finally, we can add a third category and see what happens.
+
+Note that adding a third category means that we also have to add a third $\gamma$, which I will keep the same magnitude as the others.
+
+```{r}
+new_prototypes <- list(
+  P1 = rep(1, K),
+  P2 = rep(0, K),
+  P3 = rep(0:1, K / 2)
+)
+
+new_g <- c(10, 10, 10)
+
+effects <- compositionalEffect(baseline, prototypes = new_prototypes, g = new_g)
+effects
+```
+
+As expected, the original categories become smaller, roughly by half.
+
+We can then plot the compositional effects.
+
+*Difference in probabilities.*
+
+```{r}
+plotProbChange(effects$diff)
+```
+
+*Relative risk ratios.*
+
+```{r}
+plotRR(effects$rr)
+```
+
+Both categories have a lower prevalence of features associated with the third prototype, and a higher in the features *not* associated with the third prototype (with the exception of $x_4$).
+
+What's different about $x_4$? I think it's the weights. The biggest "exits" are from features with larger weights.
+
+```{r}
+round(attr(baseline, "w"), 3)
+```
+
+Lets make the third group more exclusive by increasing the size of $\gamma$.
+
+```{r}
+new_g <- c(10, 10, 15)
+effects <- compositionalEffect(baseline, prototypes = new_prototypes, g = new_g)
+effects
+```
+
+We can then plot the compositional effects.
+
+*Difference in probabilities.*
+
+```{r}
+plotProbChange(effects$diff)
+```
+
+*Relative risk ratios.*
+
+```{r}
+plotRR(effects$rr)
+```
+
+The changes are in the same direction, but they are smaller.
+
+Note that this is related to Brubaker's "Exit, Voice, and Gender" article.
+
+## Many Comparisons
+
+We can also do many comparisons.
+
+Here I'll show the graph I presented at INAS with a varying temperature
+
+```{r}
+temps <- seq(2, 0.001, length.out = 12)
+w_list <- map(temps, \(x) temperature(w, temp = x))
+names(w_list) <- temps
+
+df <- imap_dfr(w_list, function(x, i) {
+  o <- enframe(x, name = "k", value = "w")
+  cbind(temperature = i, o)
+}) |>
+  mutate(label = factor(paste0("w", k), levels = paste0("w", 1:K)))
+
+df |>
+  mutate(temperature = factor(temperature, levels = temps)) |>
+  ggplot(aes(label, w)) +
+  geom_segment(aes(y = 0, yend = w)) +
+  geom_point(shape = 21, fill = "white") +
+  facet_wrap(
+    ~temperature,
+    labeller = labeller(temperature = \(x) {
+      paste("Temp:", round(as.numeric(x), 3))
+    }),
+    scales = "free_y"
+  ) +
+  labs(x = NULL, y = NULL, title = "Rule-Like Selective Attention")
+```
+
+And now the multiple compositional effects:
+
+```{r}
+out <- map(
+  w_list,
+  function(x) {
+    compositionalEffect(baseline, w = x)
+  },
+  .progress = TRUE
+)
+
+prob_changes <- imap(out, function(x, i) {
+  output <- x$diff |>
+    rownames_to_column("C") |>
+    pivot_longer(!C, names_to = "x", values_to = "probChange")
+  output$temperature <- i
+  output
+})
+
+bind_rows(prob_changes) |>
+  mutate(temperature = as.numeric(temperature)) |>
+  filter(C == "C1") |>
+  mutate(x = factor(x, levels = paste0("x", 1:K))) |>
+  ggplot(aes(temperature, probChange)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  facet_wrap(~x)
+
+
+rr_changes <- imap(out, function(x, i) {
+  output <- x$rr |>
+    rownames_to_column("C") |>
+    pivot_longer(!C, names_to = "x", values_to = "rrChange")
+  output$temperature <- i
+  output
+})
+
+bind_rows(rr_changes) |>
+  mutate(temperature = as.numeric(temperature)) |>
+  filter(C == "C1") |>
+  mutate(x = factor(x, levels = paste0("x", 1:K))) |>
+  ggplot(aes(temperature, rrChange)) +
+  geom_point() +
+  geom_line() +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  facet_wrap(~x)
 ```

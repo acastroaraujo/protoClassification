@@ -18,23 +18,24 @@ reference:
   contents:
     - make_binary_data
     - print.prototypeData
+    - get_data_params
     - rlkjcorr
 
 - title: Prototype Model
   contents:
-    - compute
     - calculateDistSim
+    - compute
+    - print.prototypeComputation
     - consolidate
     - conditionalProbsSample
     - conditionalProbs
     - summary.prototypeComputation
-    - print.prototypeComputation
     - print.summary.prototypeComputation
     - compositionalEffect
+    - print.compositionalEffect
 
 - title: Misc.
   contents:
     - temperature
     - transform_rho
-    - get_params
     - bivariateCondProb

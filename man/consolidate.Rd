@@ -2,16 +2,32 @@
 % Please edit documentation in R/computations.R
 \name{consolidate}
 \alias{consolidate}
-\title{Consolidate computation into a single data frame}
+\title{Consolidate Prototype Computation Results}
 \usage{
 consolidate(x)
 }
 \arguments{
-\item{x}{a `prototype` object created by the `compute()` function.}
+\item{x}{A \code{prototypeComputation} object created by \code{\link{compute}}.}
 }
 \value{
-a data frame
+A data frame containing:
+  \describe{
+    \item{Probability columns}{Named \code{prob1}, \code{prob2}, etc.,
+      representing category membership probabilities}
+    \item{Similarity columns}{Named \code{sim1}, \code{sim2}, etc.,
+      representing similarity scores to each prototype}
+    \item{Distance columns}{Named \code{dist1}, \code{dist2}, etc.,
+      representing distances to each prototype}
+    \item{Feature columns}{Original binary feature data}
+  }
+  The number of probability, similarity, and distance columns equals the
+  number of prototypes.
 }
 \description{
-Consolidate computation into a single data frame
+Combines all components of a prototype computation (probabilities, similarities,
+distances, and original data) into a single data frame for easier analysis
+and export.
+}
+\seealso{
+\code{\link{compute}} for creating \code{prototypeComputation} object.
 }

@@ -7,26 +7,24 @@
 make_binary_data(marginals, rho, obs = 1000)
 }
 \arguments{
-\item{marginals}{A numeric vector of marginal probabilities for each variable.
-Must be between 0 and 1. If unnamed, variables will be named x1, x2, etc.}
+\item{marginals}{A numeric vector of marginal probabilities for each variable.}
 
 \item{rho}{A symmetric correlation matrix with dimensions matching the length
 of \code{marginals}}
 
-\item{obs}{Integer. Number of observations (rows) to generate (default: 1000)}
+\item{obs}{Integer. Number of observations (rows) to generate.}
 }
 \value{
-A \code{prototypeData} object (inherits from data.frame) containing:
+A \code{prototypeData} object containing:
   \describe{
     \item{Binary data}{A data frame with \code{obs} rows and \code{length(marginals)} columns}
     \item{params attribute}{List containing the original marginals and correlation matrix}
   }
 }
 \description{
-Generates correlated binary data using the Gaussian copula approach.
-The function first generates multivariate normal data with specified
-correlations, then transforms it to binary data while preserving the
-correlation structure.
+Generates correlated binary data. The function first generates multivariate
+normal data with specified correlations, then transforms it to binary data while preserving the
+correlation structure. Apparently this is known as a "Gaussian copula" approach.
 }
 \examples{
 # Generate 8-dimensional correlated binary data
@@ -38,5 +36,5 @@ out
 
 }
 \seealso{
-\code{\link{get_params}}, \code{\link{print.prototypeData}}
+\code{\link{get_data_params}}, \code{\link{print.prototypeData}}
 }

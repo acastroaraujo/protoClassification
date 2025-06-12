@@ -20,24 +20,103 @@ theme_set(
     theme(strip.background = element_rect(fill = "#4C4C4C"))
 )
 
-set.seed(9)
-# Basic Workflow ----
+```
 
-K <- 10
+One of the basic points we are pursuing is that the *composition* of categories comes from the wider correlation structure between the various properties we *could* use to categorize someone or something. It also result from the wider prevalence of those same properties.
+
+*Note. I refer to "composition effects" in a separate notebook, these are the changes in the composition of features related to a change in the classification model.*
+
+## Data Simulation
+
+In order to simulate the data we use in this paper, we generate correlated binary observations from two parameters:
+
+1.  The marginal probabilities of $\mathbf x$.
+2.  The correlation structure of $\mathbf x$.
+
+```{r}
+set.seed(3)
+K <- 12
+
+rho <- rlkjcorr(1, K, eta = 1 / 4) ## use this to generate random correlation matrices
+marginals <- rbeta(K, 2, 3) # use this to generate random probabilities
+
+corrplot::corrplot.mixed(
+  rho,
+  tl.col = "black"
+)
+
+marginals |>
+  enframe() |>
+  ggplot(aes(name, value)) +
+  geom_col(width = 1 / 3) +
+  labs(x = NULL, y = "marginal probability")
+```
+
+Now we can simulate data.
+
+```{r}
 obs <- 5e3 ## high for precision
 
-# Data ----
+set.seed(10)
+d <- make_binary_data(marginals, rho, obs)
+params <- get_data_params(d) ## I will use this later.
+d
+```
 
-mu <- rbeta(K, 2, 2)
-rho <- rlkjcorr(1, K, eta = 1)
+*Note. The following probably belongs in an appendix, since it is very boring.*
 
-sim_data <- make_binary_data(mu, rho, obs)
-params <- attr(sim_data, "params")
+The trick is to take the marginal probabilities for $\mathbf x$ and map them to a "latent Normal space" using a quantile function—i.e., the inverse of the standard normal cumulative distribution function.
 
-# Prototype Parameters ----
+$$
+\boldsymbol \mu = \Phi^{-1} (\mathbf p)
+$$
 
-w <- runif(K)
-w <- w / sum(w)
+```{r}
+mu <- qnorm(marginals, mean = 0, sd = 1)
+mu
+```
+
+We then used the correlation matrix $\mathbf R$ and $\mu$ to generate 5,000 draws from a multivariate normal distribution.
+
+$$
+\mathbf z \sim \text{MVNormal}\left(\boldsymbol \mu, \mathbf R \right)
+$$
+
+```{r}
+z <- mvtnorm::rmvnorm(obs, mean = mu, sigma = rho)
+dim(z)
+```
+
+Finally, we turn these latent values into binary features into probabilities by applying the normal cumulative distribution function (CDF) to them. Then, if the probability is larger than $0.5$ we turn that feature into a one, otherwise we turn it into a zero.
+
+$$
+x_k = \begin{cases}
+1 &\text{if} &\Phi(z_k) > 0.5 \\
+0 &\text{if} &\Phi(z_k) < 0.5
+\end{cases}
+$$
+
+```{r}
+x <- stats::pnorm(z) > 0.5
+x[] <- as.integer(x)
+head(x, n = 10) # first 10 rows
+```
+
+That's it. That is how you generate correlated binary data. This might seem a bit weird, but it is a common data generation process. If you were to calculate the "tetrachoric correlation" of `x` using `psych::tetrachoric(x)` you would find that the result is essentially the same as our original correlation matrix $\mathbf R$.
+
+## Prototype Model
+
+Now we just need to finish up specifying the parameters in the Prototype Model.
+
+1.  The attention weights $\mathbf w$ (one for each feature).
+2.  The sensitivity parameters $\boldsymbol \gamma$ (one for each category).
+3.  The prototypes $\mathbf p$ (one for each category).
+
+In this example we use an vector of attention weights that basically corresponds to a "rule."
+
+```{r}
+w <- rep(0, K)
+w[[1]] <- 1
 
 g <- c(10, 10)
 
@@ -48,85 +127,164 @@ prototypes <- list(
 
 # Compute ----
 
-comparison <- compute(sim_data, prototypes, w, g)
-
-w2 <- temperature(w, 0)
-w2
-baseline <- compute(sim_data, prototypes, w2, g)
+baseline <- compute(d, prototypes, w, g)
+baseline
 ```
 
-When all attention is placed on a single feature we get to see something very intuitive about the compositions of all the other features.
+When all attention is placed on a single feature we get to see something very intuitive about the compositions of all the other features. From now on I am going to refer to this single feature as $k^\star$.
+
+For starters, here are a few things.
+
+1.  The proportion of $c_1$ is the same as the proportion of $x_k^\star$.
+
+    $$
+    \Pr(C = c_1) = \Pr(X_k = x_k^\star)
+    $$
+
+2.  The probability of $x_k^\star$ given $c_1$ is one.
+
+    $$
+    \Pr(X_k = x_k^\star \mid C = c_1) = 1
+    $$
+
+    This should be intuitive but you can check for yourself:
+
+    ```{r}
+    round(conditionalProbs(baseline, "features"), 3)
+    ```
+
+3.  The composition of the other features within the $c_1$ category is basically a function the marginal probabilities of $\mathbf x$ and the correlation matrix $\mathbf R$.
+
+    *I will expand on this later.*
+
+For now, this is how we can visualize the composition of all features within each category.
 
 ```{r}
-probs_baseline <- summary(baseline, s = 4e3) # high s for precision
-xGivenC1 <- probs_baseline$conditional$features["C1", ]
-x <- probs_baseline$marginal$features
+probs <- summary(baseline, s = 5e3) # high s for precision
 
-d <- full_join(
-  enframe(x, name = "x", value = "prob"),
-  enframe(xGivenC1, "x", "probGivenC1")
-) |>
-  full_join(enframe(params$rho[which.max(w2), ], name = "x", value = "corr")) |>
+plot_data <- probs$conditional$features |>
+  rownames_to_column("C") |>
+  pivot_longer(!C, names_to = "x", values_to = "conditionalProb") |>
+  left_join(enframe(probs$marginal$features, "x", "marginal")) |>
+  left_join(enframe(params$rho[which.max(w), ], name = "x", value = "corr")) |>
   mutate(x = factor(x, levels = paste0("x", 1:K)))
 
-d |>
-  ggplot(aes(x, y = prob)) +
-  geom_segment(aes(yend = probGivenC1), arrow = arrow(length = unit(0.1, "cm")))
-
-d |>
-  ggplot(aes(corr, prob)) +
+plot_data |>
+  ggplot(aes(x, y = marginal)) +
   geom_segment(
-    aes(yend = probGivenC1),
+    aes(yend = conditionalProb),
+    arrow = arrow(length = unit(0.015, "npc"))
+  ) +
+  facet_wrap(~C) +
+  labs(
+    x = NULL,
+    y = "probability",
+    title = "Feature Composition",
+    subtitle = "Change in probability after conditioning on C"
+  )
+```
+
+This plot shows the change in probability from $\Pr(X_k)$ to $\Pr(X_k \mid C)$.
+
+The following plot replaces the horizontal axis with correlations between $x_k$ the "exclusive feature" $x_k^\star$.
+
+```{r}
+plot_data |>
+  ggplot(aes(corr, marginal)) +
+  geom_segment(
+    aes(yend = conditionalProb),
     arrow = arrow(length = unit(0.1, "cm"))
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
+  facet_wrap(~C) +
   labs(
     title = "Change in Probability",
-    subtitle = "As a Function of The Correlation Between the Feature with Exclusive Attention and all Others."
+    subtitle = expression(
+      "As a function of the Correlation between" ~ x[k] ~ "and" ~ x[k]^"*"
+    ),
+    x = expression(rho[kk^"*"]),
+    y = "probability"
   )
 ```
 
-In short, the difference between $p(x)$ and $p(x \mid c)$ is roughly a linear function of the correlation between the exclusive feature and all other features.
+A **discovery** I made doing this simulations is that the *change* in probability of $x_k$ after conditioning on $C$ is roughly a linear function of the correlation between $x_k$ and $x_k^\star$.
 
-Thus, in an uncorrelated world, we would not expect to see much change, right?
-
-**Uncorrelated World**
+$$
+\Delta P = \Pr(X_k \mid C) - \Pr(X_k)
+$$
 
 ```{r}
-## identity matrix
-sim_data2 <- make_binary_data(mu, diag(K), obs)
-params2 <- attr(sim_data2, "params")
-uncorrelated <- compute(sim_data2, prototypes, w2, g)
+plot_data |> 
+  mutate(change = conditionalProb - marginal) |> 
+  ggplot(aes(corr, change)) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_smooth(method = "lm", fill = "skyblue") +
+  geom_point() +
+  facet_wrap(~C) + 
+  labs(
+    title = "Change in Probability vs. Correlation",
+    y = expression(Delta ~ P), x = expression(rho[kk^"*"])
+  )
+```
 
+This relationship is even cleaner when we remove $\rho_{k^\star k^\star}$.
+
+```{r}
+exclusive_feature <- colnames(baseline$data)[which.max(w)]
+
+plot_data |> 
+  mutate(change = conditionalProb - marginal) |> 
+  filter(x != exclusive_feature) |> 
+  ggplot(aes(corr, change)) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_smooth(method = "lm", fill = "skyblue") +
+  geom_point() +
+  facet_wrap(~C) + 
+  labs(
+    title = "Change in Probability vs. Correlation",
+    y = expression(Delta ~ P), x = expression(rho[kk^"*"])
+  )
+```
+
+## The Uncorrelated World
+
+If what we say about the change in probabilities being connected to the correlations between $x_k^\star$ and all other $x_k$, then we would not expect to see anything if we generate uncorrelated data, right?
+
+```{r}
+d_uncorr <- make_binary_data(marginals, diag(K), obs)
+d_uncorr
+uncorrelated <- compute(d_uncorr, prototypes, w, g)
 probs_uncorrelated <- summary(uncorrelated, s = 4e3)
-xGivenC1 <- probs_uncorrelated$conditional$features["C1", ]
-x <- probs_uncorrelated$marginal$features
+```
 
-d <- full_join(
-  enframe(x, name = "x", value = "prob"),
-  enframe(xGivenC1, "x", "probGivenC1")
-) |>
-  full_join(enframe(
-    params2$rho[which.max(w2), ],
-    name = "x",
-    value = "corr"
-  )) |>
+*Code not shown because it is redundant.*
+
+```{r, echo=FALSE}
+params_uncorr <- attr(d_uncorr, "params")
+
+plot_data_uncorr <- probs_uncorrelated$conditional$features |>
+  rownames_to_column("C") |>
+  pivot_longer(!C, names_to = "x", values_to = "conditionalProb") |>
+  left_join(enframe(probs$marginal$features, "x", "marginal")) |>
+  left_join(enframe(params$rho[which.max(w), ], name = "x", value = "corr")) |>
   mutate(x = factor(x, levels = paste0("x", 1:K)))
 
-d |>
-  ggplot(aes(x, y = prob)) +
-  geom_segment(aes(yend = probGivenC1), arrow = arrow(length = unit(0.1, "cm")))
-
-d |>
-  ggplot(aes(corr, prob)) +
+plot_data_uncorr |>
+  ggplot(aes(x, y = marginal)) +
   geom_segment(
-    aes(yend = probGivenC1),
-    arrow = arrow(length = unit(0.1, "cm"))
+    aes(yend = conditionalProb),
+    arrow = arrow(length = unit(0.015, "npc"))
   ) +
+  facet_wrap(~C) +
   labs(
-    title = "Change in Probability",
-    subtitle = "As a Function of The Correlation Between the Feature with Exclusive Attention and all Others."
+    x = NULL,
+    y = "probability",
+    title = "Feature Composition",
+    subtitle = "Change in probability after conditioning on C"
   )
+
 ```
 
 Right!
@@ -217,7 +375,7 @@ $$
 
 Let's verify this.
 
-```{r}
+```{r, eval=FALSE}
 exclusive_feature <- colnames(sim_data)[which.max(w2)]
 exclusive_feature
 
@@ -243,48 +401,14 @@ IMPROVE, WITH JOINT PROBABILITY AND BIVARIATE CDF
 
 where $p_j$ and $p_{k}^\star$ are the marginal probabilities, and $\Phi_2$ is the bivariate standard normal CDF.
 
-```{r}
+```{r, eval=FALSE}
 bivariateCondProb(params, kstar = 3) |> round(3)
 probs_baseline$conditional$features |> round(3)
 ```
 
 **Visualization of the Relationship**
 
-```{r}
-# Create comprehensive comparison
-comparison_data <- tibble(
-  feature = names(sim_data),
-  marginal = params$marginals,
-  correlation = params$rho[exclusive_feature, ],
-  prototype_cond = probs_baseline$conditional$features["C1", ],
-  theoretical_cond = bivariateCondProb(params, kstar = 3),
-  change = prototype_cond - marginal
-) |>
-  filter(feature != exclusive_feature) # Remove the exclusive feature
-
-# Plot the relationship
-comparison_data |>
-  ggplot(aes(x = correlation, y = change)) +
-  geom_point(size = 2, alpha = 0.7) +
-  geom_smooth(method = "lm", se = TRUE, alpha = 0.3) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
-  labs(
-    title = "Change in Probability vs. Correlation",
-    subtitle = "Linear relationship between correlation and P(X_j | C) - P(X_j)",
-    x = expression(paste(
-      "Correlation with exclusive feature (",
-      rho[jk^"*"],
-      ")"
-    )),
-    y = expression(paste(
-      "Change in probability: P(",
-      X[j],
-      " | C) - P(",
-      X[j],
-      ")"
-    ))
-  )
+```{r, eval=FALSE}
 
 # Show correlation coefficient
 cor_coef <- cor(comparison_data$correlation, comparison_data$change)
@@ -313,3 +437,13 @@ This provides both theoretical insight and practical understanding of how protot
 Modifying the correlation coefficient...
 
 `transform_rho`
+
+If $A \perp B$, then $P(A \mid B) = P(A)$, meaning that the difference between both quantities is zero. Knowing which category a person belongs to increaess or decreases the probability of the feature.
+
+DO A MULTI MULTI SIMULATION
+
+Remember to keep separate the idea of compositional effects and changing compositions.
+
+Compositional effects come from changes in model parameters.
+
+Changing compositions come from changes in data parameters (marginals and correlations)

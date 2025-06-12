@@ -7,12 +7,12 @@
 \method{print}{prototypeComputation}(x, ...)
 }
 \arguments{
-\item{x}{a prototypeComputation object created by \code{\link{compute}}}
+\item{x}{A \code{prototypeComputation} object created by \code{\link{compute}}.}
 
-\item{...}{(unused)}
+\item{...}{Additional arguments passed to print methods (currently unused).}
 }
 \value{
-Invisibly returns the input object \code{x}
+Invisibly returns the input object \code{x}.
 }
 \description{
 Displays a formatted summary of a prototypeComputation object, including

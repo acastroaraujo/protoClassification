@@ -2,20 +2,49 @@
 % Please edit documentation in R/computations.R
 \name{print.summary.prototypeComputation}
 \alias{print.summary.prototypeComputation}
-\title{Print method for summary.prototypeComputation objects}
+\title{Print Summary Statistics for Prototype Computation Objects}
 \usage{
 \method{print}{summary.prototypeComputation}(x, ...)
 }
 \arguments{
-\item{x}{A summary.prototypeComputation object created by
-\code{\link{summary.prototypeComputation}}}
+\item{x}{A \code{summary.prototypeComputation} object created by
+\code{\link{summary.prototypeComputation}}.}
 
-\item{...}{(unused)}
+\item{...}{Additional arguments passed to print methods (currently unused).}
 }
 \value{
-Invisibly returns the input object \code{x}
+Invisibly returns the input object \code{x} unchanged. The function
+  is called primarily for its side effect of printing formatted output.
 }
 \description{
-Prints a formatted display of summary statistics from a prototypeComputation
-object, showing marginal and conditional probabilities for categories and features.
+Displays a formatted summary of prototype-based classification results,
+showing both marginal and conditional probability distributions for
+categories and features. This method provides a comprehensive overview
+of how the prototype model distributes probability mass across categories
+and features.
+}
+\details{
+The printed output is organized into two main sections:
+
+\strong{Categories Section:}
+\itemize{
+  \item \emph{Marginals}: Overall probability of assignment to each category
+    across all observations, computed as \code{colMeans(object$probabilities)}
+  \item \emph{Conditionals}: Two sub-lists showing P(C|X) - the probability
+    of each category given feature values:
+    \itemize{
+      \item \code{Xk=0}: Category probabilities when each feature equals 0
+      \item \code{Xk=1}: Category probabilities when each feature equals 1
+    }
+}
+
+\strong{Features Section:}
+\itemize{
+  \item \emph{Marginals}: Overall probability that each feature equals 1
+    across all observations, computed as \code{colMeans(object$data)}
+  \item \emph{Conditionals}: The probability that each feature equals 1
+    given membership in each category, P(X|C).
+}
+
+All probability values are rounded to 3 decimal places for readability.
 }
