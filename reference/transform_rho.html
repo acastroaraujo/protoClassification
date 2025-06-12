@@ -101,11 +101,11 @@ the convergence is printed to the console.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Start with a random correlation matrix</span></span></span>
 <span class="r-in"><span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1</span>, K <span class="op">=</span> <span class="fl">4</span>, eta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">rho</span>, <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       [,1]  [,2] [,3]  [,4]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  1.00  0.91 0.19 -0.01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  0.91  1.00 0.09 -0.27</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.19  0.09 1.00  0.33</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] -0.01 -0.27 0.33  1.00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       [,1]  [,2]  [,3]  [,4]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  1.00 -0.29 -0.61 -0.59</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.29  1.00 -0.31 -0.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -0.61 -0.31  1.00  0.91</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] -0.59 -0.15  0.91  1.00</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Define specific correlations to set</span></span></span>
 <span class="r-in"><span><span class="va">el</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span></span>
@@ -115,20 +115,20 @@ the convergence is printed to the console.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Transform the matrix</span></span></span>
 <span class="r-in"><span><span class="va">rho_new</span> <span class="op">&lt;-</span> <span class="fu">transform_rho</span><span class="op">(</span><span class="va">rho</span>, <span class="va">el</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> iterations: 1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> iterations: 14</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> converged: TRUE</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">rho_new</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       [,1]  [,2]  [,3]  [,4]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  1.00  0.70  0.19 -0.01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  0.70  1.00  0.09 -0.27</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.19  0.09  1.00 -0.50</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] -0.01 -0.27 -0.50  1.00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  1.00  0.67 -0.53 -0.50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  0.67  1.00 -0.34 -0.17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -0.53 -0.34  1.00 -0.43</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] -0.50 -0.17 -0.43  1.00</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Verify the specified correlations were set</span></span></span>
 <span class="r-in"><span><span class="va">rho_new</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span>  <span class="co"># Should be close to 0.7</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.6709284</span>
 <span class="r-in"><span><span class="va">rho_new</span><span class="op">[</span><span class="fl">3</span>, <span class="fl">4</span><span class="op">]</span>  <span class="co"># Should be close to -0.5</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.4335107</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

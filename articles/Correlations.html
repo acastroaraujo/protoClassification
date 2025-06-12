@@ -72,26 +72,172 @@
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_light</a></span><span class="op">(</span>base_family <span class="op">=</span> <span class="st">"Avenir Next Condensed"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>strip.background <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_rect</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#4C4C4C"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>One of the basic points we are pursuing is that the
+<em>composition</em> of categories comes from the wider correlation
+structure between the various properties we <em>could</em> use to
+categorize someone or something. It also result from the wider
+prevalence of those same properties.</p>
+<p><em>Note. I refer to “composition effects” in a separate notebook,
+these are the changes in the composition of features related to a change
+in the classification model.</em></p>
+<div class="section level2">
+<h2 id="data-simulation">Data Simulation<a class="anchor" aria-label="anchor" href="#data-simulation"></a>
+</h2>
+<p>In order to simulate the data we use in this paper, we generate
+correlated binary observations from two parameters:</p>
+<ol style="list-style-type: decimal">
+<li>The marginal probabilities of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐱</mi><annotation encoding="application/x-tex">\mathbf x</annotation></semantics></math>.</li>
+<li>The correlation structure of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐱</mi><annotation encoding="application/x-tex">\mathbf x</annotation></semantics></math>.</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fl">12</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9</span><span class="op">)</span></span>
-<span><span class="co"># Basic Workflow ----</span></span>
+<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">4</span><span class="op">)</span> <span class="co">## use this to generate random correlation matrices</span></span>
+<span><span class="va">marginals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">rbeta</a></span><span class="op">(</span><span class="va">K</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span> <span class="co"># use this to generate random probabilities</span></span>
 <span></span>
-<span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
-<span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fl">5e3</span> <span class="co">## high for precision</span></span>
+<span><span class="fu">corrplot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/corrplot/man/corrplot.mixed.html" class="external-link">corrplot.mixed</a></span><span class="op">(</span></span>
+<span>  <span class="va">rho</span>,</span>
+<span>  tl.col <span class="op">=</span> <span class="st">"black"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">marginals</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="st">"marginal probability"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-2-2.png" width="700"></p>
+<p>Now we can simulate data.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fl">5e3</span> <span class="co">## high for precision</span></span>
 <span></span>
-<span><span class="co"># Data ----</span></span>
-<span></span>
-<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">rbeta</a></span><span class="op">(</span><span class="va">K</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rlkjcorr.html">rlkjcorr</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">K</span>, eta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">mu</span>, <span class="va">rho</span>, <span class="va">obs</span><span class="op">)</span></span>
-<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="st">"params"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Prototype Parameters ----</span></span>
-<span></span>
-<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span></span>
-<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="va">w</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">marginals</span>, <span class="va">rho</span>, <span class="va">obs</span><span class="op">)</span></span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_data_params.html">get_data_params</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span> <span class="co">## I will use this later.</span></span>
+<span><span class="va">d</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Data</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; 5000 obs. of  12 variables:</span></span>
+<span><span class="co">#&gt;  $ x1 : int  0 0 0 1 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x2 : int  1 1 1 0 1 0 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x3 : int  0 1 0 1 0 0 0 1 1 0 ...</span></span>
+<span><span class="co">#&gt;  $ x4 : int  0 0 0 1 0 0 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x5 : int  0 0 1 1 1 1 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x6 : int  1 0 0 0 1 1 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x7 : int  0 1 0 0 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x8 : int  0 1 0 1 1 1 1 0 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x9 : int  0 0 0 0 0 1 0 0 0 1 ...</span></span>
+<span><span class="co">#&gt;  $ x10: int  0 0 1 0 0 0 0 1 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x11: int  0 0 0 0 0 0 1 0 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x12: int  0 0 0 0 0 0 1 0 0 1 ...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Parameters</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginal Probabilities:</span></span>
+<span><span class="co">#&gt;   x1   x2   x3   x4   x5   x6   x7   x8   x9  x10  x11  x12 </span></span>
+<span><span class="co">#&gt; 0.32 0.58 0.72 0.61 0.40 0.46 0.20 0.51 0.20 0.21 0.18 0.25</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Correlation Matrix:</span></span>
+<span><span class="co">#&gt;        x1    x2    x3    x4    x5    x6    x7    x8    x9   x10   x11   x12</span></span>
+<span><span class="co">#&gt; x1   1.00 -0.34  0.11  0.01  0.22  0.06 -0.18 -0.42 -0.24  0.35 -0.31 -0.01</span></span>
+<span><span class="co">#&gt; x2  -0.34  1.00 -0.50  0.03 -0.20 -0.14 -0.22  0.46  0.27 -0.25  0.32  0.16</span></span>
+<span><span class="co">#&gt; x3   0.11 -0.50  1.00  0.46 -0.08 -0.27  0.07  0.06  0.05 -0.13  0.17  0.24</span></span>
+<span><span class="co">#&gt; x4   0.01  0.03  0.46  1.00 -0.22 -0.44 -0.49  0.41  0.05  0.03  0.29  0.29</span></span>
+<span><span class="co">#&gt; x5   0.22 -0.20 -0.08 -0.22  1.00  0.61 -0.06  0.02  0.29 -0.11 -0.06 -0.03</span></span>
+<span><span class="co">#&gt; x6   0.06 -0.14 -0.27 -0.44  0.61  1.00 -0.05 -0.22 -0.02  0.02  0.18  0.04</span></span>
+<span><span class="co">#&gt; x7  -0.18 -0.22  0.07 -0.49 -0.06 -0.05  1.00  0.00  0.06 -0.49 -0.35  0.12</span></span>
+<span><span class="co">#&gt; x8  -0.42  0.46  0.06  0.41  0.02 -0.22  0.00  1.00  0.03 -0.70  0.17  0.39</span></span>
+<span><span class="co">#&gt; x9  -0.24  0.27  0.05  0.05  0.29 -0.02  0.06  0.03  1.00 -0.18  0.44 -0.16</span></span>
+<span><span class="co">#&gt; x10  0.35 -0.25 -0.13  0.03 -0.11  0.02 -0.49 -0.70 -0.18  1.00 -0.31 -0.37</span></span>
+<span><span class="co">#&gt; x11 -0.31  0.32  0.17  0.29 -0.06  0.18 -0.35  0.17  0.44 -0.31  1.00  0.20</span></span>
+<span><span class="co">#&gt; x12 -0.01  0.16  0.24  0.29 -0.03  0.04  0.12  0.39 -0.16 -0.37  0.20  1.00</span></span></code></pre></div>
+<p><em>Note. The following probably belongs in an appendix, since it is
+very boring.</em></p>
+<p>The trick is to take the marginal probabilities for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐱</mi><annotation encoding="application/x-tex">\mathbf x</annotation></semantics></math>
+and map them to a “latent Normal space” using a quantile function—i.e.,
+the inverse of the standard normal cumulative distribution function.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛍</mi><mo>=</mo><msup><mi>Φ</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐩</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\boldsymbol \mu = \Phi^{-1} (\mathbf p)
+</annotation></semantics></math></p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">marginals</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">mu</span></span>
+<span><span class="co">#&gt;  [1] -0.48095930  0.20606295  0.59248683  0.27982587 -0.25750144 -0.11024503</span></span>
+<span><span class="co">#&gt;  [7] -0.82921732  0.03633573 -0.82916828 -0.80761381 -0.89811718 -0.67444162</span></span></code></pre></div>
+<p>We then used the correlation matrix
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐑</mi><annotation encoding="application/x-tex">\mathbf R</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+to generate 5,000 draws from a multivariate normal distribution.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐳</mi><mo>∼</mo><mtext mathvariant="normal">MVNormal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛍</mi><mo>,</mo><mi>𝐑</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathbf z \sim \text{MVNormal}\left(\boldsymbol \mu, \mathbf R \right)
+</annotation></semantics></math></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">rmvnorm</a></span><span class="op">(</span><span class="va">obs</span>, mean <span class="op">=</span> <span class="va">mu</span>, sigma <span class="op">=</span> <span class="va">rho</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 5000   12</span></span></code></pre></div>
+<p>Finally, we turn these latent values into binary features into
+probabilities by applying the normal cumulative distribution function
+(CDF) to them. Then, if the probability is larger than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.5</mn><annotation encoding="application/x-tex">0.5</annotation></semantics></math>
+we turn that feature into a one, otherwise we turn it into a zero.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>k</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">if</mtext></mtd><mtd columnalign="left" style="text-align: left"><mi>Φ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>z</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0.5</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">if</mtext></mtd><mtd columnalign="left" style="text-align: left"><mi>Φ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>z</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>&lt;</mo><mn>0.5</mn></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+x_k = \begin{cases}
+1 &amp;\text{if} &amp;\Phi(z_k) &gt; 0.5 \\
+0 &amp;\text{if} &amp;\Phi(z_k) &lt; 0.5
+\end{cases}
+</annotation></semantics></math></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">pnorm</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0.5</span></span>
+<span><span class="va">x</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co"># first 10 rows</span></span>
+<span><span class="co">#&gt;       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]</span></span>
+<span><span class="co">#&gt;  [1,]    1    0    1    1    0    1    0    0    0     1     1     1</span></span>
+<span><span class="co">#&gt;  [2,]    0    1    0    1    1    1    0    1    1     0     1     0</span></span>
+<span><span class="co">#&gt;  [3,]    0    0    1    1    1    0    1    1    0     0     0     0</span></span>
+<span><span class="co">#&gt;  [4,]    0    0    1    1    1    0    0    0    1     0     1     0</span></span>
+<span><span class="co">#&gt;  [5,]    1    1    1    1    1    1    0    0    0     1     0     0</span></span>
+<span><span class="co">#&gt;  [6,]    0    0    1    1    0    0    1    1    1     0     0     1</span></span>
+<span><span class="co">#&gt;  [7,]    0    0    1    1    1    1    1    0    0     0     0     0</span></span>
+<span><span class="co">#&gt;  [8,]    0    1    1    1    1    0    1    1    1     0     0     1</span></span>
+<span><span class="co">#&gt;  [9,]    0    0    1    1    1    1    0    1    0     0     0     0</span></span>
+<span><span class="co">#&gt; [10,]    0    1    1    0    0    0    1    0    1     0     0     0</span></span></code></pre></div>
+<p>That’s it. That is how you generate correlated binary data. This
+might seem a bit weird, but it is a common data generation process. If
+you were to calculate the “tetrachoric correlation” of <code>x</code>
+using <code>psych::tetrachoric(x)</code> you would find that the result
+is essentially the same as our original correlation matrix
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐑</mi><annotation encoding="application/x-tex">\mathbf R</annotation></semantics></math>.</p>
+</div>
+<div class="section level2">
+<h2 id="prototype-model">Prototype Model<a class="anchor" aria-label="anchor" href="#prototype-model"></a>
+</h2>
+<p>Now we just need to finish up specifying the parameters in the
+Prototype Model.</p>
+<ol style="list-style-type: decimal">
+<li>The attention weights
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐰</mi><annotation encoding="application/x-tex">\mathbf w</annotation></semantics></math>
+(one for each feature).</li>
+<li>The sensitivity parameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛄</mi><annotation encoding="application/x-tex">\boldsymbol \gamma</annotation></semantics></math>
+(one for each category).</li>
+<li>The prototypes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐩</mi><annotation encoding="application/x-tex">\mathbf p</annotation></semantics></math>
+(one for each category).</li>
+</ol>
+<p>In this example we use an vector of attention weights that basically
+corresponds to a “rule.”</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">K</span><span class="op">)</span></span>
+<span><span class="va">w</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span></span>
 <span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
@@ -102,96 +248,247 @@
 <span></span>
 <span><span class="co"># Compute ----</span></span>
 <span></span>
-<span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">prototypes</span>, <span class="va">w</span>, <span class="va">g</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">w2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/temperature.html">temperature</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="va">w2</span></span>
-<span><span class="co">#&gt;  [1] 0 0 1 0 0 0 0 0 0 0</span></span>
-<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data</span>, <span class="va">prototypes</span>, <span class="va">w2</span>, <span class="va">g</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute.html">compute</a></span><span class="op">(</span><span class="va">d</span>, <span class="va">prototypes</span>, <span class="va">w</span>, <span class="va">g</span><span class="op">)</span></span>
+<span><span class="va">baseline</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Output</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  $ distance      5000 obs. of  2 variables</span></span>
+<span><span class="co">#&gt;  $ similarity    5000 obs. of  2 variables</span></span>
+<span><span class="co">#&gt;  $ probabilities 5000 obs. of  2 variables</span></span>
+<span><span class="co">#&gt;  $ data          5000 obs. of  12 variables</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Prototypes</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  $ P1: num [1:12] 1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ P2: num [1:12] 0 0 0 0 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Distance</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Manhattan (r = 1)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Sensitivity</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; g1 g2 </span></span>
+<span><span class="co">#&gt; 10 10</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Attention Weights</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  w1  w2  w3  w4  w5  w6  w7  w8  w9 w10 w11 w12 </span></span>
+<span><span class="co">#&gt;   1   0   0   0   0   0   0   0   0   0   0   0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Marginal Probabilities</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── `colMeans(.$data)`</span></span>
+<span><span class="co">#&gt;     x1     x2     x3     x4     x5     x6     x7     x8     x9    x10    x11 </span></span>
+<span><span class="co">#&gt; 0.3168 0.5794 0.7186 0.6100 0.3992 0.4514 0.2086 0.5196 0.1998 0.2128 0.1764 </span></span>
+<span><span class="co">#&gt;    x12 </span></span>
+<span><span class="co">#&gt; 0.2428</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── `colMeans(.$probabilities)`</span></span>
+<span><span class="co">#&gt;        C1        C2 </span></span>
+<span><span class="co">#&gt; 0.3168166 0.6831834</span></span></code></pre></div>
 <p>When all attention is placed on a single feature we get to see
 something very intuitive about the compositions of all the other
-features.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">probs_baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">baseline</span>, s <span class="op">=</span> <span class="fl">4e3</span><span class="op">)</span> <span class="co"># high s for precision</span></span>
-<span><span class="va">xGivenC1</span> <span class="op">&lt;-</span> <span class="va">probs_baseline</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span><span class="op">[</span><span class="st">"C1"</span>, <span class="op">]</span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">probs_baseline</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">features</span></span>
+features. From now on I am going to refer to this single feature as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>k</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">k^\star</annotation></semantics></math>.</p>
+<p>For starters, here are a few things.</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>The proportion of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math>
+is the same as the proportion of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">x_k^\star</annotation></semantics></math>.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>C</mi><mo>=</mo><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo>=</mo><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\Pr(C = c_1) = \Pr(X_k = x_k^\star)
+</annotation></semantics></math></p>
+</li>
+<li>
+<p>The probability of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">x_k^\star</annotation></semantics></math>
+given
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math>
+is one.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo>=</mo><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><mo>∣</mo><mi>C</mi><mo>=</mo><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">
+\Pr(X_k = x_k^\star \mid C = c_1) = 1
+</annotation></semantics></math></p>
+<p>This should be intuitive but you can check for yourself:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="../reference/conditionalProbs.html">conditionalProbs</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="st">"features"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    x1    x2    x3   x4    x5    x6    x7    x8    x9   x10   x11   x12</span></span>
+<span><span class="co">#&gt; C1  1 0.405 0.766 0.61 0.509 0.499 0.152 0.329 0.126 0.328 0.083 0.236</span></span>
+<span><span class="co">#&gt; C2  0 0.660 0.697 0.61 0.348 0.429 0.235 0.608 0.234 0.160 0.220 0.246</span></span></code></pre></div>
+</li>
+<li>
+<p>The composition of the other features within the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mn>1</mn></msub><annotation encoding="application/x-tex">c_1</annotation></semantics></math>
+category is basically a function the marginal probabilities of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐱</mi><annotation encoding="application/x-tex">\mathbf x</annotation></semantics></math>
+and the correlation matrix
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐑</mi><annotation encoding="application/x-tex">\mathbf R</annotation></semantics></math>.</p>
+<p><em>I will expand on this later.</em></p>
+</li>
+</ol>
+<p>For now, this is how we can visualize the composition of all features
+within each category.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">baseline</span>, s <span class="op">=</span> <span class="fl">5e3</span><span class="op">)</span> <span class="co"># high s for precision</span></span>
 <span></span>
-<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">x</span>, name <span class="op">=</span> <span class="st">"x"</span>, value <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">xGivenC1</span>, <span class="st">"x"</span>, <span class="st">"probGivenC1"</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">rho</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max</a></span><span class="op">(</span><span class="va">w2</span><span class="op">)</span>, <span class="op">]</span>, name <span class="op">=</span> <span class="st">"x"</span>, value <span class="op">=</span> <span class="st">"corr"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">probs</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">rownames_to_column</a></span><span class="op">(</span><span class="st">"C"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="op">!</span><span class="va">C</span>, names_to <span class="op">=</span> <span class="st">"x"</span>, values_to <span class="op">=</span> <span class="st">"conditionalProb"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">probs</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">features</span>, <span class="st">"x"</span>, <span class="st">"marginal"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">rho</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="op">]</span>, name <span class="op">=</span> <span class="st">"x"</span>, value <span class="op">=</span> <span class="st">"corr"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">x</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(x)`</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(x)`</span></span>
 <span></span>
-<span><span class="va">d</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">prob</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>yend <span class="op">=</span> <span class="va">probGivenC1</span><span class="op">)</span>, arrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/arrow.html" class="external-link">arrow</a></span><span class="op">(</span>length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="st">"cm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Correlations_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">d</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">corr</span>, <span class="va">prob</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="va">plot_data</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">marginal</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>yend <span class="op">=</span> <span class="va">probGivenC1</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>yend <span class="op">=</span> <span class="va">conditionalProb</span><span class="op">)</span>,</span>
+<span>    arrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/arrow.html" class="external-link">arrow</a></span><span class="op">(</span>length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.015</span>, <span class="st">"npc"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">C</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"probability"</span>,</span>
+<span>    title <span class="op">=</span> <span class="st">"Feature Composition"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="st">"Change in probability after conditioning on C"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p>This plot shows the change in probability from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(X_k)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo>∣</mo><mi>C</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr(X_k \mid C)</annotation></semantics></math>.</p>
+<p>The following plot replaces the horizontal axis with correlations
+between
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>
+the “exclusive feature”
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">x_k^\star</annotation></semantics></math>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plot_data</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">corr</span>, <span class="va">marginal</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>yend <span class="op">=</span> <span class="va">conditionalProb</span><span class="op">)</span>,</span>
 <span>    arrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/arrow.html" class="external-link">arrow</a></span><span class="op">(</span>length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="st">"cm"</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">C</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="st">"Change in Probability"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"As a Function of The Correlation Between the Feature with Exclusive Attention and all Others."</span></span>
+<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span></span>
+<span>      <span class="st">"As a function of the Correlation between"</span> <span class="op">~</span> <span class="va">x</span><span class="op">[</span><span class="va">k</span><span class="op">]</span> <span class="op">~</span> <span class="st">"and"</span> <span class="op">~</span> <span class="va">x</span><span class="op">[</span><span class="va">k</span><span class="op">]</span><span class="op">^</span><span class="st">"*"</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="va">kk</span><span class="op">^</span><span class="st">"*"</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"probability"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="Correlations_files/figure-html/unnamed-chunk-2-2.png" width="700"></p>
-<p>In short, the difference between
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(x)</annotation></semantics></math>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>A <strong>discovery</strong> I made doing this simulations is that
+the <em>change</em> in probability of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>
+after conditioning on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+is roughly a linear function of the correlation between
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(x \mid c)</annotation></semantics></math>
-is roughly a linear function of the correlation between the exclusive
-feature and all other features.</p>
-<p>Thus, in an uncorrelated world, we would not expect to see much
-change, right?</p>
-<p><strong>Uncorrelated World</strong></p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">## identity matrix</span></span>
-<span><span class="va">sim_data2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">mu</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span>, <span class="va">obs</span><span class="op">)</span></span>
-<span><span class="va">params2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">sim_data2</span>, <span class="st">"params"</span><span class="op">)</span></span>
-<span><span class="va">uncorrelated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute.html">compute</a></span><span class="op">(</span><span class="va">sim_data2</span>, <span class="va">prototypes</span>, <span class="va">w2</span>, <span class="va">g</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">probs_uncorrelated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">uncorrelated</span>, s <span class="op">=</span> <span class="fl">4e3</span><span class="op">)</span></span>
-<span><span class="va">xGivenC1</span> <span class="op">&lt;-</span> <span class="va">probs_uncorrelated</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span><span class="op">[</span><span class="st">"C1"</span>, <span class="op">]</span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">probs_uncorrelated</span><span class="op">$</span><span class="va">marginal</span><span class="op">$</span><span class="va">features</span></span>
-<span></span>
-<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">x</span>, name <span class="op">=</span> <span class="st">"x"</span>, value <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span><span class="va">xGivenC1</span>, <span class="st">"x"</span>, <span class="st">"probGivenC1"</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span></span>
-<span>    <span class="va">params2</span><span class="op">$</span><span class="va">rho</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max</a></span><span class="op">(</span><span class="va">w2</span><span class="op">)</span>, <span class="op">]</span>,</span>
-<span>    name <span class="op">=</span> <span class="st">"x"</span>,</span>
-<span>    value <span class="op">=</span> <span class="st">"corr"</span></span>
-<span>  <span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">x</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Joining with `by = join_by(x)`</span></span>
-<span><span class="co">#&gt; Joining with `by = join_by(x)`</span></span>
-<span></span>
-<span><span class="va">d</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">prob</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>yend <span class="op">=</span> <span class="va">probGivenC1</span><span class="op">)</span>, arrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/arrow.html" class="external-link">arrow</a></span><span class="op">(</span>length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="st">"cm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Correlations_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">d</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">corr</span>, <span class="va">prob</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>yend <span class="op">=</span> <span class="va">probGivenC1</span><span class="op">)</span>,</span>
-<span>    arrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/arrow.html" class="external-link">arrow</a></span><span class="op">(</span>length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="st">"cm"</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">x_k^\star</annotation></semantics></math>.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>P</mi><mo>=</mo><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo>∣</mo><mi>C</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\Delta P = \Pr(X_k \mid C) - \Pr(X_k)
+</annotation></semantics></math></p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plot_data</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">conditionalProb</span> <span class="op">-</span> <span class="va">marginal</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">corr</span>, <span class="va">change</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, fill <span class="op">=</span> <span class="st">"skyblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">C</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Change in Probability"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"As a Function of The Correlation Between the Feature with Exclusive Attention and all Others."</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="Correlations_files/figure-html/unnamed-chunk-3-2.png" width="700"></p>
+<span>    title <span class="op">=</span> <span class="st">"Change in Probability vs. Correlation"</span>,</span>
+<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">Delta</span> <span class="op">~</span> <span class="va">P</span><span class="op">)</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="va">kk</span><span class="op">^</span><span class="st">"*"</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p>This relationship is even cleaner when we remove
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><msup><mi>k</mi><mo>⋆</mo></msup><msup><mi>k</mi><mo>⋆</mo></msup></mrow></msub><annotation encoding="application/x-tex">\rho_{k^\star k^\star}</annotation></semantics></math>.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">exclusive_feature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">baseline</span><span class="op">$</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">plot_data</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">conditionalProb</span> <span class="op">-</span> <span class="va">marginal</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">x</span> <span class="op">!=</span> <span class="va">exclusive_feature</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">corr</span>, <span class="va">change</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, fill <span class="op">=</span> <span class="st">"skyblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">C</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Change in Probability vs. Correlation"</span>,</span>
+<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">Delta</span> <span class="op">~</span> <span class="va">P</span><span class="op">)</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">rho</span><span class="op">[</span><span class="va">kk</span><span class="op">^</span><span class="st">"*"</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="the-uncorrelated-world">The Uncorrelated World<a class="anchor" aria-label="anchor" href="#the-uncorrelated-world"></a>
+</h2>
+<p>If what we say about the change in probabilities being connected to
+the correlations between
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>x</mi><mi>k</mi><mo>⋆</mo></msubsup><annotation encoding="application/x-tex">x_k^\star</annotation></semantics></math>
+and all other
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>k</mi></msub><annotation encoding="application/x-tex">x_k</annotation></semantics></math>,
+then we would not expect to see anything if we generate uncorrelated
+data, right?</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">d_uncorr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_binary_data.html">make_binary_data</a></span><span class="op">(</span><span class="va">marginals</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span>, <span class="va">obs</span><span class="op">)</span></span>
+<span><span class="va">d_uncorr</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Data</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; 5000 obs. of  12 variables:</span></span>
+<span><span class="co">#&gt;  $ x1 : int  1 0 1 0 0 0 0 0 0 1 ...</span></span>
+<span><span class="co">#&gt;  $ x2 : int  0 1 0 0 0 1 1 0 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x3 : int  1 1 1 1 0 1 1 1 1 0 ...</span></span>
+<span><span class="co">#&gt;  $ x4 : int  1 1 1 1 0 1 1 1 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x5 : int  0 0 1 0 0 1 0 0 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ x6 : int  0 1 0 0 1 1 0 1 1 0 ...</span></span>
+<span><span class="co">#&gt;  $ x7 : int  0 0 0 0 0 0 1 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x8 : int  0 0 1 0 0 0 1 0 1 0 ...</span></span>
+<span><span class="co">#&gt;  $ x9 : int  0 0 1 0 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x10: int  0 0 0 0 1 1 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x11: int  0 0 1 1 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;  $ x12: int  0 0 1 0 1 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Parameters</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Marginal Probabilities:</span></span>
+<span><span class="co">#&gt;   x1   x2   x3   x4   x5   x6   x7   x8   x9  x10  x11  x12 </span></span>
+<span><span class="co">#&gt; 0.32 0.58 0.72 0.61 0.40 0.46 0.20 0.51 0.20 0.21 0.18 0.25</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Correlation Matrix:</span></span>
+<span><span class="co">#&gt;     x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12</span></span>
+<span><span class="co">#&gt; x1   1  0  0  0  0  0  0  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x2   0  1  0  0  0  0  0  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x3   0  0  1  0  0  0  0  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x4   0  0  0  1  0  0  0  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x5   0  0  0  0  1  0  0  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x6   0  0  0  0  0  1  0  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x7   0  0  0  0  0  0  1  0  0   0   0   0</span></span>
+<span><span class="co">#&gt; x8   0  0  0  0  0  0  0  1  0   0   0   0</span></span>
+<span><span class="co">#&gt; x9   0  0  0  0  0  0  0  0  1   0   0   0</span></span>
+<span><span class="co">#&gt; x10  0  0  0  0  0  0  0  0  0   1   0   0</span></span>
+<span><span class="co">#&gt; x11  0  0  0  0  0  0  0  0  0   0   1   0</span></span>
+<span><span class="co">#&gt; x12  0  0  0  0  0  0  0  0  0   0   0   1</span></span>
+<span><span class="va">uncorrelated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute.html">compute</a></span><span class="op">(</span><span class="va">d_uncorr</span>, <span class="va">prototypes</span>, <span class="va">w</span>, <span class="va">g</span><span class="op">)</span></span>
+<span><span class="va">probs_uncorrelated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">uncorrelated</span>, s <span class="op">=</span> <span class="fl">4e3</span><span class="op">)</span></span></code></pre></div>
+<p><em>Code not shown because it is redundant.</em></p>
+<pre><code><span><span class="co">#&gt; Joining with `by = join_by(x)`</span></span>
+<span><span class="co">#&gt; Joining with `by = join_by(x)`</span></span></code></pre>
+<p><img src="Correlations_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>Right!</p>
 <p><strong>In Search for a Simple Function</strong></p>
 <p>So, how do we think about the function linking
@@ -287,27 +584,14 @@ and
 \Pr(X_j = 1 \mid C = c_1) \approx \Pr(X_j = 1 \mid X_k^\star = 1) 
 </annotation></semantics></math></p>
 <p>Let’s verify this.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">exclusive_feature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max</a></span><span class="op">(</span><span class="va">w2</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">exclusive_feature</span></span>
-<span><span class="co">#&gt; [1] "x3"</span></span>
 <span></span>
 <span><span class="va">sim_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span>, .by <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">all_of</a></span><span class="op">(</span><span class="va">exclusive_feature</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   x3        x1        x2        x4        x5        x6        x7        x8</span></span>
-<span><span class="co">#&gt; 1  1 0.3494407 0.1628635 0.5024609 0.6241611 0.1865772 0.7400447 0.4304251</span></span>
-<span><span class="co">#&gt; 2  0 0.2437613 0.3779385 0.3591320 0.6213382 0.1992767 0.8618445 0.5602170</span></span>
-<span><span class="co">#&gt;          x9       x10</span></span>
-<span><span class="co">#&gt; 1 0.4053691 0.3856823</span></span>
-<span><span class="co">#&gt; 2 0.4462929 0.3960217</span></span>
 <span></span>
-<span><span class="va">probs_baseline</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span>
-<span><span class="co">#&gt;           x1        x2           x3        x4        x5        x6        x7</span></span>
-<span><span class="co">#&gt; C1 0.3494339 0.1628745 9.999452e-01 0.5024521 0.6241583 0.1865780 0.7400526</span></span>
-<span><span class="co">#&gt; C2 0.2437665 0.3779304 4.085407e-05 0.3591386 0.6213404 0.1992761 0.8618386</span></span>
-<span><span class="co">#&gt;           x8        x9       x10</span></span>
-<span><span class="co">#&gt; C1 0.4304344 0.4053728 0.3856804</span></span>
-<span><span class="co">#&gt; C2 0.5602099 0.4462901 0.3960233</span></span></code></pre></div>
+<span><span class="va">probs_baseline</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span></span></code></pre></div>
 <p>Correct!</p>
 <p><strong>The Connection to Correlations</strong></p>
 <p>The relationship between
@@ -329,58 +613,15 @@ and
 are the marginal probabilities, and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Φ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\Phi_2</annotation></semantics></math>
 is the bivariate standard normal CDF.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/bivariateCondProb.html">bivariateCondProb</a></span><span class="op">(</span><span class="va">params</span>, kstar <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    x1    x2    x3    x4    x5    x6    x7    x8    x9   x10 </span></span>
-<span><span class="co">#&gt; 0.335 0.156 1.000 0.514 0.617 0.180 0.742 0.424 0.404 0.400</span></span>
-<span><span class="va">probs_baseline</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       x1    x2 x3    x4    x5    x6    x7   x8    x9   x10</span></span>
-<span><span class="co">#&gt; C1 0.349 0.163  1 0.502 0.624 0.187 0.740 0.43 0.405 0.386</span></span>
-<span><span class="co">#&gt; C2 0.244 0.378  0 0.359 0.621 0.199 0.862 0.56 0.446 0.396</span></span></code></pre></div>
+<span><span class="va">probs_baseline</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Visualization of the Relationship</strong></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create comprehensive comparison</span></span>
-<span><span class="va">comparison_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span>,</span>
-<span>  marginal <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">marginals</span>,</span>
-<span>  correlation <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">rho</span><span class="op">[</span><span class="va">exclusive_feature</span>, <span class="op">]</span>,</span>
-<span>  prototype_cond <span class="op">=</span> <span class="va">probs_baseline</span><span class="op">$</span><span class="va">conditional</span><span class="op">$</span><span class="va">features</span><span class="op">[</span><span class="st">"C1"</span>, <span class="op">]</span>,</span>
-<span>  theoretical_cond <span class="op">=</span> <span class="fu"><a href="../reference/bivariateCondProb.html">bivariateCondProb</a></span><span class="op">(</span><span class="va">params</span>, kstar <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  change <span class="op">=</span> <span class="va">prototype_cond</span> <span class="op">-</span> <span class="va">marginal</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">!=</span> <span class="va">exclusive_feature</span><span class="op">)</span> <span class="co"># Remove the exclusive feature</span></span>
-<span></span>
-<span><span class="co"># Plot the relationship</span></span>
-<span><span class="va">comparison_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">correlation</span>, y <span class="op">=</span> <span class="va">change</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, se <span class="op">=</span> <span class="cn">TRUE</span>, alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"gray50"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"gray50"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Change in Probability vs. Correlation"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Linear relationship between correlation and P(X_j | C) - P(X_j)"</span>,</span>
-<span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Correlation with exclusive feature ("</span>,</span>
-<span>      <span class="va">rho</span><span class="op">[</span><span class="va">jk</span><span class="op">^</span><span class="st">"*"</span><span class="op">]</span>,</span>
-<span>      <span class="st">")"</span></span>
-<span>    <span class="op">)</span><span class="op">)</span>,</span>
-<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Change in probability: P("</span>,</span>
-<span>      <span class="va">X</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,</span>
-<span>      <span class="st">" | C) - P("</span>,</span>
-<span>      <span class="va">X</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,</span>
-<span>      <span class="st">")"</span></span>
-<span>    <span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="Correlations_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Show correlation coefficient</span></span>
 <span><span class="va">cor_coef</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison_data</span><span class="op">$</span><span class="va">correlation</span>, <span class="va">comparison_data</span><span class="op">$</span><span class="va">change</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Correlation between ρ and probability change:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cor_coef</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Correlation between ρ and probability change: 0.988</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Correlation between ρ and probability change:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cor_coef</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Summary</strong></p>
 <p>This analysis demonstrates that when all attention is focused on a
 single feature in prototype-based classification:</p>
@@ -412,13 +653,28 @@ interpretable.</p></li>
 <p>This provides both theoretical insight and practical understanding of
 how prototype-based classification behaves under extreme attention
 weighting scenarios.</p>
+</div>
 <div class="section level2">
 <h2 id="extra">Extra<a class="anchor" aria-label="anchor" href="#extra"></a>
 </h2>
 <p>Modifying the correlation coefficient…</p>
 <p><code>transform_rho</code></p>
+<p>If
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>⊥</mo><mi>B</mi></mrow><annotation encoding="application/x-tex">A \perp B</annotation></semantics></math>,
+then
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>A</mi><mo>∣</mo><mi>B</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>A</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(A \mid B) = P(A)</annotation></semantics></math>,
+meaning that the difference between both quantities is zero. Knowing
+which category a person belongs to increaess or decreases the
+probability of the feature.</p>
+<p>DO A MULTI MULTI SIMULATION</p>
+<p>Remember to keep separate the idea of compositional effects and
+changing compositions.</p>
+<p>Compositional effects come from changes in model parameters.</p>
+<p>Changing compositions come from changes in data parameters (marginals
+and correlations)</p>
 </div>
-  </main>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

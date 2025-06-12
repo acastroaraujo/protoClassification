@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/CompositionalEffects: CompositionalEffects.html
   articles/Correlations: Correlations.html
-last_built: 2025-06-11T05:03Z
+last_built: 2025-06-12T05:41Z
 urls:
   reference: https://acastroaraujo.github.io/protoClassification/reference
   article: https://acastroaraujo.github.io/protoClassification/articles
