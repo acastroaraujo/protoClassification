@@ -19,7 +19,6 @@ reference:
     - make_binary_data
     - print.prototypeData
     - get_data_params
-    - rlkjcorr
 
 - title: Prototype Model
   contents:
@@ -36,6 +35,8 @@ reference:
 
 - title: Misc.
   contents:
+    - ruleStarCondProb
     - temperature
     - transform_rho
-    - bivariateCondProb
+    - rlkjcorr
+    - dlkjcorr

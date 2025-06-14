@@ -21,5 +21,5 @@ Retrieves the parameters (marginal probabilities and correlation matrix)
 that were used to generate a prototypeData object.
 }
 \seealso{
-\code{\link{make_binary_data}}, \code{\link{bivariateCondProb}}
+\code{\link{make_binary_data}}
 }

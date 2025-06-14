@@ -96,57 +96,10 @@ print.prototypeData <- function(x, digits = 2, ...) {
 #'
 #' @export
 #'
-#' @seealso \code{\link{make_binary_data}}, \code{\link{bivariateCondProb}}
+#' @seealso \code{\link{make_binary_data}}
 #'
 get_data_params <- function(x) {
   stopifnot(inherits(x, "prototypeData"))
   attr(x, "params", exact = TRUE)
-}
-
-
-#' Extract theoretical conditional probabilities for bivariate case
-#'
-#' Computes the theoretical conditional probabilities P(X_j = 1 | C = c1)
-#' for all variables j when attention is focused entirely on variable k*.
-#' In this case, we have that P(X_j = 1 | C = c1) = P(X_j = 1 | X_k* = 1)
-#' This uses the bivariate normal distribution to compute exact conditional
-#' probabilities based on the correlation structure.
-#'
-#' @param parameters A list containing marginal probabilities and correlation matrix,
-#'   as returned by \code{\link{get_data_params}}.
-#' @param kstar Integer. The index of the variable receiving all attention
-#'   (must be between 1 and the number of variables)
-#'
-#' @return A named numeric vector of conditional probabilities P(X_j = 1 | X_k* = 1)
-#'   for all variables j, where the variable at position \code{kstar} will have
-#'   probability 1 (since X_k* = 1 is the conditioning event)
-#'
-#' @export
-#'
-#' @seealso \code{\link{get_data_params}}, \code{\link{make_binary_data}}
-#'
-bivariateCondProb <- function(parameters, kstar) {
-  stopifnot(names(parameters) == c("marginals", "rho"))
-  stopifnot(length(parameters) == 2)
-  stopifnot(kstar %in% seq_along(parameters$marginals))
-
-  correlations <- parameters$rho[kstar, ]
-  pstar <- parameters$marginals[[kstar]]
-
-  output <- purrr::map_dbl(seq_along(parameters$marginals), function(j) {
-    rhojk <- correlations[[j]]
-    pj <- parameters$marginals[[j]]
-
-    joint_prob <- mvtnorm::pmvnorm(
-      lower = c(-Inf, -Inf),
-      upper = c(stats::qnorm(pj), stats::qnorm(pstar)),
-      sigma = rbind(c(1, rhojk), c(rhojk, 1))
-    )
-    attributes(joint_prob) <- NULL
-    joint_prob / pstar
-  })
-
-  names(output) <- names(parameters$marginals)
-  return(output)
 }
 

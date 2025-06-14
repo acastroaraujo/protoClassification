@@ -36,7 +36,7 @@
 #' correlation matrices based on vines and extended onion method.
 #' Journal of multivariate analysis, 100(9), 1989-2001.
 #'
-#' @seealso \code{\link{transform_rho}}
+#' @seealso \code{\link{dlkjcorr}} and \code{\link{transform_rho}}
 #'
 rlkjcorr <- function(n, K, eta = 1) {
   stopifnot(is.numeric(K), K >= 2, K == as.integer(K))
@@ -72,6 +72,52 @@ rlkjcorr <- function(n, K, eta = 1) {
   }
   return(R)
 }
+
+
+#' Compute the log-density of the LKJ distribution for correlation matrices
+#'
+#' Computes the (log) probability density of a correlation matrix under the
+#' LKJ (Lewandowski-Kurowicka-Joe) distribution. The LKJ distribution is
+#' parameterized by a shape parameter eta that controls the concentration
+#' around the identity matrix.
+#'
+#' @param x A symmetric positive definite matrix with 1s on the diagonal
+#'   (i.e., a correlation matrix)
+#' @param eta Numeric. Shape parameter controlling the concentration around the
+#'   identity matrix. Must be positive. When eta = 1, the distribution is uniform
+#'   over correlation matrices. As eta increases, more mass is placed on matrices
+#'   closer to the identity matrix
+#' @param log Logical. If \code{TRUE} (default), returns the log-density.
+#'   If \code{FALSE}, returns the density on the original scale
+#'
+#' @return Numeric value representing the (log) density of the correlation matrix
+#'   under the LKJ distribution with the specified eta parameter
+#'
+#' @details The LKJ density is proportional to det(R)^(eta-1), where R is the
+#'   correlation matrix. This function computes this density (or log-density).
+#'   Note that this is the unnormalized density - the normalizing constant
+#'   is not included.
+#'
+#' @export
+#'
+#' @source These functions come from Richard McElreath's \href{https://github.com/rmcelreath/rethinking/blob/master/R/distributions.r}{rethinking} package
+#' and, judging by the source code, it seems that he got them from Ben Goodrich.
+#'
+#' @references
+#' Lewandowski, D., Kurowicka, D., & Joe, H. (2009). Generating random
+#' correlation matrices based on vines and extended onion method.
+#' Journal of multivariate analysis, 100(9), 1989-2001.
+#'
+#' @seealso \code{\link{rlkjcorr}} and \code{\link{transform_rho}}
+#'
+dlkjcorr <- function(x, eta = 1, log = TRUE) {
+  ll <- det(x)^(eta - 1)
+  if (log == TRUE) {
+    ll <- log(ll)
+  }
+  return(ll)
+}
+
 
 
 #' Transform correlation matrix by setting specific correlations
