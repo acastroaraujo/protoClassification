@@ -138,8 +138,8 @@ bivariateCondProb <- function(parameters, kstar) {
     pj <- parameters$marginals[[j]]
 
     joint_prob <- mvtnorm::pmvnorm(
-      lower = c(stats::qnorm(1 - pj), stats::qnorm(1 - pstar)),
-      upper = c(Inf, Inf),
+      lower = c(-Inf, -Inf),
+      upper = c(stats::qnorm(pj), stats::qnorm(pstar)),
       sigma = rbind(c(1, rhojk), c(rhojk, 1))
     )
     attributes(joint_prob) <- NULL
@@ -149,3 +149,4 @@ bivariateCondProb <- function(parameters, kstar) {
   names(output) <- names(parameters$marginals)
   return(output)
 }
+
