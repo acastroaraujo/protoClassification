@@ -30,9 +30,9 @@
 #' ruleStarCondProb(pxk = 0.3, pxkstar = 0.4, corr = -0.5)
 #'
 ruleStarCondProb <- function(pxk, pxkstar, corr) {
-  stopifnot(corr < 1 & corr > -1)
-  stopifnot(pxk < 1 & pxk > 0)
-  stopifnot(pxkstar < 1 & pxkstar > 0)
+  stopifnot(corr <= 1 & corr >= -1)
+  stopifnot(pxk <= 1 & pxk >= 0)
+  stopifnot(pxkstar <= 1 & pxkstar >= 0)
 
   joint_prob <- mvtnorm::pmvnorm(
     lower = c(-Inf, -Inf),
